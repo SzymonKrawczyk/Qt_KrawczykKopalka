@@ -1,2 +1,3 @@
 # Qt_KrawczykKopalka
-#edytuję
+
+Repozytorium na przedmiot Programowanie wieloplatformowe w Qt
