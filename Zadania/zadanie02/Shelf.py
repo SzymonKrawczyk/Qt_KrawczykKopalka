@@ -18,6 +18,21 @@
 import Product
 
 
+class ProductAlreadyExistError(Exception):
+    """Klasa służąca do wyświetlania błędu przy prubie dodania już istniejącego produktu"""
+    def __init__(self, variable):
+        self.message = "Produkt: " + variable + " już istnieje"
+        print(self.message)
+        super().__init__(self.message)
+
+class ProductDoNotExistError(Exception):
+    """Klasa służąca do wyświetlania błędu przy prubie odwołania się do nie istniejącego produktu"""
+    def __init__(self, variable):
+        self.message = "Produkt: " + variable + " nie istnieje"
+        print(self.message)
+        super().__init__(self.message)
+
+
 class Shelf:
     """Klasa przechowuje informacje o produktach i zarzadzajaca nimi """
 
@@ -38,58 +53,71 @@ class Shelf:
 
     def return_product_index_by_name(self, name):
 
-        # TODO: wyjatek gdy niepoprawny typ danych
+        # TODO: nie jestem pewny czy o coś takiego mogło ci chodzić ( wykorzystałem sobie już istniejący wyjątek z Product.py )
 
-        index = -1
-        for i in range(len(self.products)):
-            if self.products[i].name.lower() == name.lower():
-                index = i
-                break
-        return index
+        if not isinstance(name, str):
+            raise Product.WrongTypeOfVariableInNameError(name)
+        else:
+            index = -1
+            for i in range(len(self.products)):
+                if self.products[i].name.lower() == name.lower():
+                    index = i
+                    break
+            return index
 
     def new_product(self, name, price=-1.0, amount=-1):
+        if self.return_product_index_by_name(name) != -1:
+           raise ProductAlreadyExistError(name)
 
-        # if self.return_product_index(name) != -1:
-        # TODO: wyrzuc wyjatek "produkt juz istnieje"
-        self.products.append(Product.Product(name, price, amount))
+        product = Product.Product(name, price, amount)
+        self.products.append(product)
+
+
 
     def remove_product(self, name):
-
-        i = self.return_product_index_by_name(name)
-        # if i == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-
-        self.products.pop(i)
+        try:
+            i = self.return_product_index_by_name(name)
+            if i == -1:
+                raise ProductDoNotExistError
+            self.products.pop(i)
+        except Exception:
+            pass
 
     def change_name(self, old, new):
-
-        index_old = self.return_product_index_by_name(old)
-        # if index_old == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-
-        index_new = self.return_product_index_by_name(new)  # sprawdzenie czy juz taki jest
-        # if index_new == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-
-        self.products[index_old].set_name(new)
+        try:
+            index_old = self.return_product_index_by_name(old)
+            index_new = self.return_product_index_by_name(new)
+            if index_old == -1:
+                raise ProductDoNotExistError
+            if index_new == -1:
+                raise ProductAlreadyExistError
+            self.products[index_old].set_name(new)
+        except Exception:
+            pass
 
     def set_price(self, name, value):
-
-        i = self.return_product_index_by_name(name)
-        # if i == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-        self.products[i].set_price(value)
+        try:
+            i = self.return_product_index_by_name(name)
+            if i == -1:
+                raise ProductDoNotExistError
+            self.products[i].set_price(value)
+        except Exception:
+            pass
 
     def set_amount(self, name, value):
-
-        i = self.return_product_index_by_name(name)
-        # if i == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-        self.products[i].set_amount(value)
+        try:
+            i = self.return_product_index_by_name(name)
+            if i == -1:
+                raise ProductDoNotExistError
+            self.products[i].set_amount(value)
+        except Exception:
+            pass
 
     def change_amount(self, name, value):
-
-        i = self.return_product_index_by_name(name)
-        # if i == -1:
-        # TODO: wyrzuc wyjatek "produkt nie istnieje"
-        self.products[i].change_amount(value)
+        try:
+            i = self.return_product_index_by_name(name)
+            if i == -1:
+                raise ProductDoNotExistError
+            self.products[i].change_amount(value)
+        except Exception:
+            pass

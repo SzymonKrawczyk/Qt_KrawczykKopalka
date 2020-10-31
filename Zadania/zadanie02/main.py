@@ -5,11 +5,23 @@
 
 import Shelf
 
-if __name__ == '__main__':
+def main():
     anime_shelf = Shelf.Shelf()
 
-    anime_shelf.new_product("Megumin figurine", 99.98, 7)
-    anime_shelf.new_product("Holo sticker", 5.55, 17)
+
+    try:
+        anime_shelf.new_product("Megumin figurine", 99.98, 7)
+        anime_shelf.new_product("HEJ", "asd", 123)
+
+
+    except Shelf.Product.WrongTypeOfVariableInPriceError:
+        print("fsdsafwef")
+
+
+    #anime_shelf.new_product("Megumin figurine", 99.98, 7)
+    #anime_shelf.new_product("Holo sticker", 5.55, 17)
+    #anime_shelf.new_product(112, 123, 123)
+    #anime_shelf.new_product("HEJ", "asd", 123)
     print(anime_shelf)
 
     anime_shelf.change_name("MegumiN figurine", "Megumin figure")
@@ -20,5 +32,9 @@ if __name__ == '__main__':
     anime_shelf.remove_product("megumin figure")
     anime_shelf.change_amount("HoLo StIcKeR", 25)
     print(anime_shelf)
+
+
+if __name__ == '__main__':
+    main()
 
 # TODO rozbudowac
