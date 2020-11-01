@@ -1,7 +1,6 @@
 # Main demonstrujacy i testujacy mozliwosci klas Shelf i Product
 #
-#   skrypt zapewniający możliwość przetestowania funkcji zaimplementowanych w klasie Shelf
-#   pod postacią prostego menu opartego na instrukcji if. TODO( nie umiem w dokumentacje )
+#       Proste menu do obsługi oraz modyfikacji listy produktów + obsługą wyjątków
 #
 #   Autorzy: Szymon Krawczyk, Michał Kopałka
 #
@@ -12,17 +11,20 @@
 #           01.11.2020 | Szymon Krawczyk    | Przeniesienie try do main
 #           01.11.2020 | Szymon Krawczyk    | Rozbudowanie main
 #           01.11.2020 | Michał Kopałka     | Rozbudowanie main
+#           01.11.2020 | Szymon Krawczyk    | Poprawa komentarzy
 #
 
 import Shelf
 import os
 
+
 def main():
     anime_shelf = Shelf.Shelf()
-    #inicjalizacja pierwszych dwóch produktów TODO ( było nieco zbyt pusto na początku )
+
+    # inicjalizacja pierwszych trzech produktów do testowania
     anime_shelf.new_product("Megumin figurine", 99.98, 7)
     anime_shelf.new_product("Holo sticker", 5.55, 17)
-    anime_shelf.new_product("Echidna dakimakura", 119.99, 1)
+    anime_shelf.new_product("Echidna dakimakura 2WT 180x60cm", 119.99, 1)
 
     myinput = 0
     while myinput != 5:
@@ -49,6 +51,8 @@ def main():
 
                 printshelf(anime_shelf)
 
+            except Shelf.ProductAlreadyExistsError:
+                input("Produkt już istnieje, spróbuj ponownie ( naciśnij ENTER )")
             except Shelf.WrongTypeOfVariable:
                 input("Zły typ danych, spróbuj ponownie ( naciśnij ENTER )")
             except Shelf.WrongValueOfVariable:
@@ -80,11 +84,12 @@ def main():
                 if anime_shelf.return_product_index_by_name(myinput1) == -1:
                     input("Wybrany produkt nie istnieje ( naciśnij ENTER )")
                 else:
-                    myinput2 = int(input("Którą wartość chcesz zmodyfikować? 1)nazwę 2)cenę 3)ilość sztuk(set) 4)ilość sztuk(add) : "))
+                    print("Którą wartość chcesz zmodyfikować?")
+                    myinput2 = int(input("1)nazwę 2)cenę 3)ilość sztuk(ustaw) 4)ilość sztuk(dodaj/odejmij) : "))
                     if myinput2 < 1 or myinput2 > 4:
-                        input("Wybrano złą wartość ( możliwe opcje: 1, 2, 3, 4 ) ( naciśnij ENTER )")
+                        input("Wybrano złą wartość ( możliwe opcje: 1, 2, 3 ) ( naciśnij ENTER )")
                     else:
-                        myinput3 = input("podaj nową wartość: ")
+                        myinput3 = input("podaj wartość: ")
                         if myinput2 == 1:
                             anime_shelf.change_name(old=myinput1, new=myinput3)
                         if myinput2 == 2:
@@ -118,35 +123,16 @@ def main():
         print()
         clear()
 
+
 def printshelf(shelf):
     print()
     print(shelf)
     input("( naciśnij ENTER )")
 
-    # TODO dokonczyc main wedlug wzoru wyzej
-    # anime_shelf.new_product("Megumin figurine", 99.98, 7)
-    # anime_shelf.new_product("Holo sticker", 5.55, 17)
-    # anime_shelf.new_product(112, 123, 123)
-    # anime_shelf.new_product("HEJ", "asd", 123)
-    # print(anime_shelf)
-    #
-    # anime_shelf.change_name("MegumiN figurine", "Megumin figure")
-    # anime_shelf.set_amount("megumin figure", 2)
-    # anime_shelf.set_price("megumin figure", 130.49)
-    # print(anime_shelf)
-    #
-    # anime_shelf.remove_product("megumin figure")
-    # anime_shelf.change_amount("HoLo StIcKeR", 25)
-    # print(anime_shelf)
-
-    # TODO wszystko w miarę w porządku oprócz dodawania produktów o nazwie "123".
-    #  wczytywane są one jako string i nie trigerują wyjątku
-    #  różnica pomiędzy Product(123, 123, 123) a Product("123", 123, 123)
-    
-
 
 def clear():
-    os.system('cls' if os.name=='nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 
 if __name__ == '__main__':
     main()
