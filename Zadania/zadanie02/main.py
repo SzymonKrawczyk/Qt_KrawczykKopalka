@@ -82,7 +82,7 @@ def main():
                 else:
                     myinput2 = int(input("Którą wartość chcesz zmodyfikować? 1)nazwę 2)cenę 3)ilość sztuk(set) 4)ilość sztuk(add) : "))
                     if myinput2 < 1 or myinput2 > 4:
-                        input("Wybrano złą wartość ( możliwe opcje: 1, 2, 3 ) ( naciśnij ENTER )")
+                        input("Wybrano złą wartość ( możliwe opcje: 1, 2, 3, 4 ) ( naciśnij ENTER )")
                     else:
                         myinput3 = input("podaj nową wartość: ")
                         if myinput2 == 1:
