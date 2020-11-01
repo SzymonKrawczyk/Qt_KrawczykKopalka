@@ -76,12 +76,12 @@ def main():
         elif myinput == 4:
             try:
                 print(anime_shelf)
-                myinput1 = str(input("podaj nazwę lub index produktu który chcesz zmodyfikować: "))
+                myinput1 = str(input("podaj nazwę produktu który chcesz zmodyfikować: "))
                 if anime_shelf.return_product_index_by_name(myinput1) == -1:
                     input("Wybrany produkt nie istnieje ( naciśnij ENTER )")
                 else:
-                    myinput2 = int(input("Którą wartość chcesz zmodyfikować? 1)nazwę 2)cenę 3)ilość sztuk : "))
-                    if myinput2 < 1 or myinput2 > 3:
+                    myinput2 = int(input("Którą wartość chcesz zmodyfikować? 1)nazwę 2)cenę 3)ilość sztuk(set) 4)ilość sztuk(add) : "))
+                    if myinput2 < 1 or myinput2 > 4:
                         input("Wybrano złą wartość ( możliwe opcje: 1, 2, 3 ) ( naciśnij ENTER )")
                     else:
                         myinput3 = input("podaj nową wartość: ")
@@ -91,6 +91,8 @@ def main():
                             anime_shelf.set_price(name=myinput1, value=float(myinput3))
                         if myinput2 == 3:
                             anime_shelf.set_amount(name=myinput1, value=int(myinput3))
+                        if myinput2 == 4:
+                            anime_shelf.change_amount(name=myinput1, value=int(myinput3))
                         printshelf(anime_shelf)
 
             except Shelf.WrongTypeOfVariable:
