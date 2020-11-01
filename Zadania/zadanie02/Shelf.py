@@ -14,23 +14,19 @@
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
 #   Data utworzenia: 31.10.2020
+#
+#       Modyfikacje:
+#           31.10.2020 | Michał Kopałka     | Utworzenie wyjatkow
+#           01.11.2020 | Szymon Krawczyk    | Przeniesienie wyjatkow do osobnego pliku
+#           01.11.2020 | Szymon Krawczyk    | Usuniecie blokow try
+#
+
 
 import Product
-
-
-class ProductAlreadyExistError(Exception):
-    """Klasa służąca do wyświetlania błędu przy prubie dodania już istniejącego produktu"""
-    def __init__(self, variable):
-        self.message = "Produkt: " + variable + " już istnieje"
-        print(self.message)
-        super().__init__(self.message)
-
-class ProductDoNotExistError(Exception):
-    """Klasa służąca do wyświetlania błędu przy prubie odwołania się do nie istniejącego produktu"""
-    def __init__(self, variable):
-        self.message = "Produkt: " + variable + " nie istnieje"
-        print(self.message)
-        super().__init__(self.message)
+from MyExceptions import WrongTypeOfVariable
+from MyExceptions import WrongValueOfVariable
+from MyExceptions import ProductAlreadyExistsError
+from MyExceptions import ProductDoesNotExistError
 
 
 class Shelf:
@@ -52,11 +48,8 @@ class Shelf:
         return temp
 
     def return_product_index_by_name(self, name):
-
-        # TODO: nie jestem pewny czy o coś takiego mogło ci chodzić ( wykorzystałem sobie już istniejący wyjątek z Product.py )
-
         if not isinstance(name, str):
-            raise Product.WrongTypeOfVariableInNameError(name)
+            raise WrongTypeOfVariable()
         else:
             index = -1
             for i in range(len(self.products)):
@@ -67,57 +60,40 @@ class Shelf:
 
     def new_product(self, name, price=-1.0, amount=-1):
         if self.return_product_index_by_name(name) != -1:
-           raise ProductAlreadyExistError(name)
+            raise ProductAlreadyExistsError()
 
-        product = Product.Product(name, price, amount)
+        product = Product.Product(name, price, amount)  # mozliwe WrongTypeOfVariable oraz WrongValueOfVariable
         self.products.append(product)
 
-
-
     def remove_product(self, name):
-        try:
-            i = self.return_product_index_by_name(name)
-            if i == -1:
-                raise ProductDoNotExistError
-            self.products.pop(i)
-        except Exception:
-            pass
+        i = self.return_product_index_by_name(name)
+        if i == -1:
+            raise ProductDoesNotExistError
+        self.products.pop(i)
 
     def change_name(self, old, new):
-        try:
-            index_old = self.return_product_index_by_name(old)
-            index_new = self.return_product_index_by_name(new)
-            if index_old == -1:
-                raise ProductDoNotExistError
-            if index_new == -1:
-                raise ProductAlreadyExistError
-            self.products[index_old].set_name(new)
-        except Exception:
-            pass
+        index_old = self.return_product_index_by_name(old)
+        index_new = self.return_product_index_by_name(new)
+        if index_old == -1:
+            raise ProductDoesNotExistError
+        if index_new != -1:
+            raise ProductAlreadyExistsError
+        self.products[index_old].set_name(new)      # mozliwe WrongTypeOfVariable
 
     def set_price(self, name, value):
-        try:
-            i = self.return_product_index_by_name(name)
-            if i == -1:
-                raise ProductDoNotExistError
-            self.products[i].set_price(value)
-        except Exception:
-            pass
+        i = self.return_product_index_by_name(name)
+        if i == -1:
+            raise ProductDoesNotExistError
+        self.products[i].set_price(value)           # mozliwe WrongTypeOfVariable oraz WrongValueOfVariable
 
     def set_amount(self, name, value):
-        try:
-            i = self.return_product_index_by_name(name)
-            if i == -1:
-                raise ProductDoNotExistError
-            self.products[i].set_amount(value)
-        except Exception:
-            pass
+        i = self.return_product_index_by_name(name)
+        if i == -1:
+            raise ProductDoesNotExistError
+        self.products[i].set_amount(value)          # mozliwe WrongTypeOfVariable oraz WrongValueOfVariable
 
     def change_amount(self, name, value):
-        try:
-            i = self.return_product_index_by_name(name)
-            if i == -1:
-                raise ProductDoNotExistError
-            self.products[i].change_amount(value)
-        except Exception:
-            pass
+        i = self.return_product_index_by_name(name)
+        if i == -1:
+            raise ProductDoesNotExistError
+        self.products[i].change_amount(value)       # mozliwe WrongTypeOfVariable oraz WrongValueOfVariable
