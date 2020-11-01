@@ -142,8 +142,7 @@ def printshelf(shelf):
     # TODO wszystko w miarę w porządku oprócz dodawania produktów o nazwie "123".
     #  wczytywane są one jako string i nie trigerują wyjątku
     #  różnica pomiędzy Product(123, 123, 123) a Product("123", 123, 123)
-    # TODO nie zaimplementowałem też metody change_amount... zapomniałem że istnieje.
-    #  jest tylko set. ( po co komu change_amount jak ma set? )
+    
 
 
 def clear():
