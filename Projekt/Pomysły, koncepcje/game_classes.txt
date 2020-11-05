@@ -1,0 +1,80 @@
+# Klasy potrzebne do działania gry (mniej więcej) - pseudokod
+#
+#
+#  Autorzy: Szymon Krawczyk, Michał Kopałka
+#
+#           05.11.2020 | Szymon Krawczyk    | Utworzenie
+#
+
+Coords:
+# Klasa przechowująca pozycję x, y
+
+	#Pola
+		_x - int
+		_y - int
+		
+	#Metody
+		get,set		
+		set(coords) - ustawia x, y na podstawie obiektu typu coords z argumentu
+
+
+Snake:
+# Klasa odpowiadająca za węża
+
+	#Pola
+		_head - Coords
+		_tail - Coords[]
+		_color_head - int / float
+		_color_tail - int / float
+		_current_direction - int / char # obecny kierunek węża
+	
+	#Metody
+		get, set		
+		set_head(int, int) - ustawia head
+
+Game:
+# Klasa zawierająca logikę i silnik gry
+
+	#Pola
+		_FPS - int
+		_python - Snake
+		_game_board - int[][] # przechowuje komórki planszy gry
+		_score - int
+		_new_direction - int / char 	# pole zmieniane przez użytkownika, mówi gdzie chce pójść
+										# potrzebne, aby w prosty sposób zapobiec pójściu do tyłu
+
+	#Metody
+		get, set
+		
+		board_reset # czyści planszę
+		generate_dynamic_walls # generuje dynamiczne ściany po środku planszy
+		
+		find_free_spot # do generowania pelletów do jedzenia dla węża
+		generate_normal_pellet # spawnuje normalny pellet na wolnym miejscu
+		generate_super_pellet  # spawnuje super pellet na wolnym miejscu
+		
+		check_collisions # sprawdza kolizje głowy węża z jego ogonem i ścianami
+		check_pellet_collisions # zwraca int: 0 jak bez kolizji z pelletami,
+				                # 1 jak ze zwykłym, 2 jak ze specjalnym
+								# + zeruje pole ze zjedzonym pelletem
+		move(int - 0, 1 lub 2) {
+		0 : porusza wężem (głowa i ogon) biorąc pod uwagę jego obecny i nowy kierunek
+		1 : dodaje nowy obiekt do tablicy ogona węża w miejscu jego głowy,
+		    następnie porusza głową węża i generate_normal_pellet()
+		2 : dodaje nowy obiekt do tablicy ogona węża w miejscu jego głowy,
+		    następnie porusza głową węża i generate_super_pellet()
+			+ zwiększa fps*=2 na określony czas
+		}
+
+		paint # rysuje planszę gry, różne kształty, rozmiary i kolory w zależności od wartości pola;
+			  # wąż rysowany na koniec
+			  
+		engine {
+			loop{	# loop może być tutaj lub w kodzie korzystającym z tej klasy, do omówienia	
+				check_collisions()
+				move(check_pellet_collisions())
+				
+				paint()				
+				sleep(_FPS/1000ms)
+			}			
+		}
