@@ -1,0 +1,9 @@
+Klasy podstawowe - widok:
+
+GameView - (klasa gry i jej widoku)
+
+TitleView - (klasa widoku menu / ustawień / zasad)
+
+MainViewUI - klasa UI łącząca pozostałe 3 klasy
+
+MainViewController - walidacja, przekazywanie danych pomiędzy GameView i TitleView przez korzystanie z interface zapisanego w MainViewUI
