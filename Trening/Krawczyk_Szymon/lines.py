@@ -6,10 +6,13 @@
 #       które wywołuje drawstepbystep
 #
 #       Modyfikacje:
-#           06 11 2020 - Szymon Krawczyk:
-#                           dodanie komentarzy
-#                           dodanie zachowania narysowanych poprzednich linii
-#                           usunięcie flagi możliwości rysowania (self.paint) w ramach eksperymentu - działa
+#           06.11.2020 | Szymon Krawczyk     | Dodanie komentarzy
+#           06.11.2020 | Szymon Krawczyk     | Dodanie zachowania narysowanych poprzednich linii
+#           06.11.2020 | Szymon Krawczyk     | Usunięcie flagi możliwości rysowania (self.paint)
+#                                            |    w ramach eksperymentu - działa
+#           07.11.2020 | Szymon Krawczyk     | Dodanie metody resetującej
+#           07.11.2020 | Szymon Krawczyk     | Usprawnienie kodu odpowiedzialnego za rysowanie
+#           07.11.2020 | Szymon Krawczyk     | Poprawa komentarzy
 #
 
 import sys
@@ -20,46 +23,39 @@ from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QWidget, QApplication
 
 
-LINES = []
-# losowanie koordynatów dla 50 linii
-for i in range(50):
-    LINES.append([int(500*random()), int(500*random()), int(500*random()), int(500*random())])
-
-
 class Interface(QWidget):
     def __init__(self):
         super().__init__()
         self.cursor = 0
         self.show()
-        self.indexes = []
-
-        # self.paint = True
+        self.reset()
 
         # timer wykonuje self.onTimeout co 500ms
         timer = QTimer(self)
         timer.timeout.connect(self.onTimeout)
         timer.start(500)
 
+    def reset(self):
+        self.cursor = 0
+        self.LINES = []
+        # losowanie koordynatów dla 50 linii
+        for i in range(50):
+            self.LINES.append([int(500 * random()), int(500 * random()), int(500 * random()), int(500 * random())])
+
     def onTimeout(self):  # zmienia flagę możliwości rysowania na true; wykonuje się co 500ms
-        # self.paint = True
         self.update()  # wywołuje paintEvent
 
     def paintEvent(self, e):    # żądanie odświeżenia obrazu
-        # if self.paint:  # jeżeli jest flaga możliwości rysowania, wykonaj drawstepbystep
         painter = QPainter(self)
         self.drawstepbystep(painter)
 
     def drawstepbystep(self, painter): # podczas każdego wykonania wyświetla kolejną linię na podstawie wartosci z listy
 
-        if self.cursor < len(LINES):  # dodaje nową linię do narysowania, jeżeli jest taka możliwość
-            self.indexes.append(self.cursor)
+        if self.cursor < len(self.LINES):  # dodaje nową linię do narysowania, jeżeli jest taka możliwość
             self.cursor += 1
 
-        for i in self.indexes:  # gdy nie ma nowych linii, wyświetla te, które są już wyświetlone
-            painter.drawLine(LINES[i][0], LINES[i][1], LINES[i][2], LINES[i][3])
-
-        # self.paint = False  # zmiana informacji o możliwości rysowania na false,
-                            # będzie można rysować gdy wywoła się onTimeout
+        for i in range(0, self.cursor):  # gdy nie ma nowych linii, wyświetla te, które są już wyświetlone
+            painter.drawLine(self.LINES[i][0], self.LINES[i][1], self.LINES[i][2], self.LINES[i][3])
 
 
 app = QApplication(sys.argv)
