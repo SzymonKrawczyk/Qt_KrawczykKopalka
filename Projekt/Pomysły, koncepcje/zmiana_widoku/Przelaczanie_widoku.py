@@ -11,18 +11,22 @@
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
 #           05.11.2020 | Michał Kopałka      | Utworzenie
-#
+#           07.11.2020 | Szymon Krawczyk     | Zmiana drugiego okna na klasę Interface służącą jako demo
+#                                            |   rysowania dynamicznie generowanych linii
+#           07.11.2020 | Szymon Krawczyk     | Dodanie dynamiki przycisku głównego
 #
 
 
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QPushButton, QMessageBox
-from Projekt.Szablony.Ui_zmiana_widoku import Ui_MainWindow
+from zmiana_widoku.Ui_zmiana_widoku import Ui_MainWindow
+
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.main_win = QMainWindow()
+        self.flag = 0
 
         # Podstawienie sobie pod ui naszego wygenerowanego interfaceu
         self.ui = Ui_MainWindow()
@@ -35,19 +39,36 @@ class MainWindow(QMainWindow):
         # czy jest elementem stackedWidget odwołujemy się do niego tak samo )
         # mainPushButton jest w głównym oknie, reszta w stackedWidget
         self.ui.mainPushButton.clicked.connect(self.mainPushButtonClicked)
-        self.ui.Screen1pushButton.clicked.connect(self.Screen1PushButtonClicked)
+        self.ui.Screen1pushButton.clicked.connect(self.screen1PushButtonClicked)
         self.ui.screen2pushButton.clicked.connect(self.screen2PushButtonClicked)
+        self.ui.mainPushButton.setText("Zagraj")
 
     def show(self):
         self.main_win.show()
 
     # zmiany widoku widgetu
     def mainPushButtonClicked(self):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.page)
-    def  Screen1PushButtonClicked(self):
-        self.ui.stackedWidget.setCurrentWidget(self.ui.page_2)
+        if self.flag == 1:
+            self.flag = 0
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page)
+            self.ui.mainPushButton.setText("Zagraj")
+        else:
+            self.flag = 1
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_2)
+            self.ui.mainPushButton.setText("Ekran główny")
+            self.ui.page_2.reset()
+
     def screen2PushButtonClicked(self):
+        self.flag = 0
         self.ui.stackedWidget.setCurrentWidget(self.ui.page)
+        self.ui.mainPushButton.setText("Zagraj")
+
+    def screen1PushButtonClicked(self):
+        self.flag = 1
+        self.ui.stackedWidget.setCurrentWidget(self.ui.page_2)
+        self.ui.mainPushButton.setText("Ekran główny")
+        self.ui.page_2.reset()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
