@@ -6,6 +6,7 @@
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
 #           06.11.2020 | Szymon Krawczyk    | Utworzenie
+#           11.11.2020 | Szymon Krawczyk    | Poprawienie setterów - wyrzucanie wyjątków
 #
 
 from Coords import Coords
@@ -23,6 +24,8 @@ class Snake:
 
     @head.setter
     def head(self, value):
+        if not isinstance(value, Coords):
+            raise ValueError
         self._head = value
 
     # Tablica z ogonem
@@ -32,10 +35,9 @@ class Snake:
 
     @tail.setter
     def tail(self, value):
-        if isinstance(value, list):
-            self._tail = value
-        else:
-            self._tail = self._tail
+        if not isinstance(value, list):
+            raise ValueError
+        self._tail = value
 
     # Obecny kierunek ruchu
     @property
@@ -44,11 +46,11 @@ class Snake:
 
     @direction.setter
     def direction(self, value):
-        # TODO upewnić się że kierunek to N E W lub S
+        if value != "N" and value != "E" and value != "W" and value != "S" and value != "":
+            raise ValueError
         self._direction = value
 
     # TODO właściwość koloru ogona i głowy - QColor ?
-
     # Metody
     def __init__(self):
         self.head = Coords()
@@ -92,6 +94,7 @@ class Snake:
 
 
 # Test
+# TODO Usunąć
 temp = Snake()
 temp.direction = "E"
 temp.head.x = 1
