@@ -13,13 +13,25 @@
 #
 #
 #           11.11.2020 | Szymon Krawczyk    | Utworzenie
-#
+#           12.11.2020 | Szymon Krawczyk    | Rysowanie v1:
+#                                           |   Rysowanie bezpośrednio na GameView, usunięcie myCanvas
+#                                           |       (prostsze rozwiązanie na chwilę obecną)
+# TODO cleanup!!!
+
+#   Legenda oznaczeń wewnątrz macierzy komórek
+#       0-puste
+#       1-jedzenie
+#       2-super jedzenie
+#       7-ściana
 
 
 import sys
+from random import randrange
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QPainter
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter, QPen, QColor
 from PyQt5.QtWidgets import QWidget, QApplication
 
 
@@ -56,7 +68,7 @@ class GameView(QWidget):
 
     @cellCount.setter
     def cellCount(self, value):
-        if value % 2 == 0 or value < 11 or value > 31:
+        if value % 2 == 0 or value < 11 or value > 41:
             raise ValueError
         self._cellCount = value
 
@@ -98,14 +110,21 @@ class GameView(QWidget):
 
         # Deklaracja pól
         self.newDirection = ""
-        self.CPS = 4
+        self.CPS = 1
         self.cellCount = 21
         self.powerups = True
         self.closedBox = True
         self.randomWall = True
+        self.__gameMatrix = []
+        self.__paintFlag = False
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.onTimeout)
 
         # UI wygenerowane automatycznie
-        self.setFixedSize(600, 800)
+        self.width = 600
+        self.height = 800
+        self.setFixedSize(self.width, self.height)
 
         self.horizontalLayoutWidget = QtWidgets.QWidget(self)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(80, 10, 440, 60))
@@ -158,9 +177,13 @@ class GameView(QWidget):
         self.verticalLayout_2.addWidget(self.scoreCurrent)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
 
-        self.myCanvas = QtWidgets.QWidget(self)
-        self.myCanvas.setGeometry(QtCore.QRect(50, 100, 500, 500))
-        self.myCanvas.setObjectName("myCanvas")
+        # self.myCanvas = QtWidgets.QWidget(self)
+        self.cellWidth = int(500 / self.cellCount)
+        self.myCanvasSize = self.cellWidth * self.cellCount
+        self.myCanvasPaddingX = (self.width-self.myCanvasSize)/2
+        self.myCanvasPaddingY = 100
+        # self.myCanvas.setGeometry(QtCore.QRect(int(tempPaddingX), 100, self.myCanvasSize, self.myCanvasSize))
+        # self.myCanvas.setObjectName("myCanvas")
 
         self.gridLayoutWidget = QtWidgets.QWidget(self)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(180, 610, 239, 161))
@@ -190,9 +213,9 @@ class GameView(QWidget):
         self.gridLayout.addWidget(self.arrDown, 2, 1, 1, 1)
 
         # Ustawienie pól i elementów UI domyślnie
-        self.reset()
+        self.hardReset()
 
-    def reset(self):
+    def hardReset(self):
         self.label_3.setText("HIGH SCORE")
         self.label_4.setText("SCORE")
         self.scoreHigh.setText("999999")
@@ -203,11 +226,87 @@ class GameView(QWidget):
         self.arrDown.setText("v")
 
         self.newDirection = ""
-        self.CPS = 4
+        self.CPS = 1
         self.cellCount = 21
         self.powerups = True
         self.closedBox = True
         self.randomWall = True
+        self.__gameMatrix = []
+
+        self.cellWidth = int(500 / self.cellCount)
+        self.myCanvasSize = self.cellWidth * self.cellCount
+        self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
+        self.myCanvasPaddingY = 100
+
+        self.__paintFlag = True
+        self.timer.stop()
+
+    def newGame(self):
+        self.timer.stop()
+
+        self.__gameMatrix = []
+        for i in range(self._cellCount):
+            temp = []
+            for j in range(self._cellCount):
+                temp.append(0)
+            self.__gameMatrix.append(temp)
+
+        if self.closedBox:
+            for i in range(self._cellCount):
+                self.__gameMatrix[i][0] = 7
+                self.__gameMatrix[0][i] = 7
+                self.__gameMatrix[i][self.cellCount-1] = 7
+                self.__gameMatrix[self.cellCount-1][i] = 7
+
+        if self.randomWall:
+            randY1 = randrange(3, int(self.cellCount/2))
+            randY2 = randrange(int(self.cellCount/2)+1, self.cellCount-3)
+            for i in range(self._cellCount-6):
+                self.__gameMatrix[i+3][randY1] = 7
+                self.__gameMatrix[i+3][randY2] = 7
+
+        self.timer.start(int(1000/self.CPS))
+
+    def onTimeout(self):
+        self.__paintFlag = True
+        self.update()
+
+    def paintEvent(self, e):
+        if self.__paintFlag:
+            print("paint")
+
+            # Kolory TODO self?
+            backgroundColor = QColor(153, 204, 255)
+            wallColor = QColor(0, 0, 0)
+
+            # Dla uproszczenia i skrócenia dalszej części
+            width = self.myCanvasSize
+            x0 = int(self.myCanvasPaddingX)
+            xn = int(x0 + width)
+            y0 = int(self.myCanvasPaddingY)
+            yn = int(y0 + width)
+
+            painter = QPainter(self)
+
+            painter.setBrush(backgroundColor)
+            painter.setPen(Qt.NoPen)  # rysowanie bez krawędzi
+            painter.drawRect(x0, y0, width, width)
+
+            for i in range(self._cellCount):
+                for j in range(self._cellCount):
+                    if self.__gameMatrix[i][j] == 7:
+                        painter.setBrush(wallColor)
+                    elif self.__gameMatrix[i][j] == 1:
+                        # kolor = czerwony
+                        pass
+                    elif self.__gameMatrix[i][j] == 2:
+                        # kolor = pomarańczowy
+                        pass
+                    else:
+                        painter.setBrush(backgroundColor)
+                    painter.drawRect(int(x0+(i*self.cellWidth)), int(y0+(j*self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
+
+        self.__paintFlag = False
 
     def arrRightClicked(self):
         self.newDirection = "E"
@@ -231,4 +330,5 @@ class GameView(QWidget):
 app = QApplication(sys.argv)
 interface = GameView()
 interface.show()
+interface.newGame()
 sys.exit(app.exec_())
