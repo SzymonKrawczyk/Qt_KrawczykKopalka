@@ -1,13 +1,16 @@
 # Klasa Snake
 #
 #   Klasa przechowująca informacje o wężu
-#
+#   TODO dodać informacje o obsłudze klasy
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
 #           06.11.2020 | Szymon Krawczyk    | Utworzenie
 #           11.11.2020 | Szymon Krawczyk    | Poprawienie setterów - wyrzucanie wyjątków
+#           14.11.2020 | Szymon Krawczyk    | Usunięcie testowania działania
+#           14.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego w poruszaniu ogonem gdy jest pusty
 #
+from PyQt5.QtGui import QColor
 
 from Coords import Coords
 
@@ -50,12 +53,35 @@ class Snake:
             raise ValueError
         self._direction = value
 
-    # TODO właściwość koloru ogona i głowy - QColor ?
+    # Kolor głowy węża
+    @property
+    def headColor(self):
+        return self._headColor
+
+    @headColor.setter
+    def headColor(self, value):
+        if not isinstance(value, QColor):
+            raise ValueError
+        self._headColor = value
+
+    # Kolor ogonu węża
+    @property
+    def tailColor(self):
+        return self._tailColor
+
+    @tailColor.setter
+    def tailColor(self, value):
+        if not isinstance(value, QColor):
+            raise ValueError
+        self._tailColor = value
+
     # Metody
     def __init__(self):
         self.head = Coords()
         self.tail = []
         self.direction = ""
+        self._headColor = QColor(0, 100, 0)
+        self._tailColor = QColor(0, 128, 0)
 
     # True, jeżeli wąż "się zjadł"; w pozostałych przypadkach False
     def checkTailCollision(self):
@@ -69,9 +95,10 @@ class Snake:
     # Ruch 'normalny' ciała węża - ostatnia pozycja przyjmuję pozycję wcześniejszej itd + ruch głowy
     def tailMove(self):
         n = len(self.tail)-1
-        for element in range(n):
-            self.tail[n-element].copyCoords(self.tail[n-(element+1)])
-        self.tail[0].copyCoords(self.head)
+        if n >= 0:
+            for element in range(n):
+                self.tail[n-element].copyCoords(self.tail[n-(element+1)])
+            self.tail[0].copyCoords(self.head)
         self.headMove()
 
     # Ruch ciała węża po jedzeniu - brak ruchu, zwiększenie ciała w pozycji głowy i ruch głowy
@@ -83,35 +110,11 @@ class Snake:
 
     # Ruch głowy w zależności od kierunku
     def headMove(self):
-        if self._direction == "N":
+        if self.direction == "N":
             self.head.y -= 1
-        elif self._direction == "E":
+        elif self.direction == "E":
             self.head.x += 1
-        elif self._direction == "W":
+        elif self.direction == "W":
             self.head.x -= 1
-        elif self._direction == "S":
+        elif self.direction == "S":
             self.head.y += 1
-
-
-# Test
-# TODO Usunąć
-temp = Snake()
-temp.direction = "E"
-temp.head.x = 1
-temp.head.y = 1
-for i in range(0, 10):
-    print(i)
-    temp.tailMoveEating()
-    print(f"H {temp.head}")
-    for j in temp.tail:
-        print(j)
-    print()
-print()
-print()
-temp.direction = "S"
-for i in range(0, 10):
-    temp.tailMove()
-    print(f"H {temp.head}")
-    for j in temp.tail:
-        print(j)
-    print()

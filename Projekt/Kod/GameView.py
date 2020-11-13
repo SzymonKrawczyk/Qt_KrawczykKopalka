@@ -16,7 +16,11 @@
 #           12.11.2020 | Szymon Krawczyk    | Rysowanie v1:
 #                                           |   Rysowanie bezpośrednio na GameView, usunięcie myCanvas
 #                                           |       (prostsze rozwiązanie na chwilę obecną)
-# TODO cleanup!!!
+#           14.11.2020 | Szymon Krawczyk    | Wyczyszczenie kodu
+#           14.11.2020 | Szymon Krawczyk    | Usunięcie metody hardReset na próbę (nie wydaje się potrzebna)
+#           14.11.2020 | Szymon Krawczyk    | Dodanie poruszania się węża
+#           14.11.2020 | Szymon Krawczyk    | Rysowanie v2: Rysowanie węża i jego ogonu
+#
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
 #       0-puste
@@ -31,8 +35,10 @@ from random import randrange
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QPen, QColor
+from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QApplication
+
+from Snake import Snake
 
 
 class GameView(QWidget):
@@ -50,7 +56,7 @@ class GameView(QWidget):
             raise ValueError
         self._newDirection = value
 
-    # Ilość ruchów na sekundę (szybkość gry) - musi być w przedziale <1; 10>
+    # Ilość ruchów na sekundę (szybkość gry) - musi być w przedziale
     @property
     def CPS(self):
         return self._CPS
@@ -61,7 +67,7 @@ class GameView(QWidget):
             raise ValueError
         self._CPS = value
 
-    # Ilość komórek na ekranie gry (bok) - musi być nieparzystyi w przedziale <11; 31>
+    # Ilość komórek na ekranie gry (bok) - musi być nieparzysty i w przedziale
     @property
     def cellCount(self):
         return self._cellCount
@@ -108,15 +114,19 @@ class GameView(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Deklaracja pól
+        # Deklaracja pól i wartości domyślne
         self.newDirection = ""
         self.CPS = 1
         self.cellCount = 21
         self.powerups = True
         self.closedBox = True
         self.randomWall = True
-        self.__gameMatrix = []
-        self.__paintFlag = False
+
+        self.gameMatrix = []
+        self.paintFlag = True
+
+        self.Python = Snake()
+        self.gameOver = False
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.onTimeout)
@@ -178,7 +188,7 @@ class GameView(QWidget):
         self.horizontalLayout.addLayout(self.verticalLayout_2)
 
         # self.myCanvas = QtWidgets.QWidget(self)
-        self.cellWidth = int(500 / self.cellCount)
+        self.cellWidth = int((self.width-100) / self.cellCount)
         self.myCanvasSize = self.cellWidth * self.cellCount
         self.myCanvasPaddingX = (self.width-self.myCanvasSize)/2
         self.myCanvasPaddingY = 100
@@ -212,10 +222,7 @@ class GameView(QWidget):
         self.arrDown.clicked.connect(self.arrDownClicked)
         self.gridLayout.addWidget(self.arrDown, 2, 1, 1, 1)
 
-        # Ustawienie pól i elementów UI domyślnie
-        self.hardReset()
-
-    def hardReset(self):
+        # self.hardReset()
         self.label_3.setText("HIGH SCORE")
         self.label_4.setText("SCORE")
         self.scoreHigh.setText("999999")
@@ -225,104 +232,188 @@ class GameView(QWidget):
         self.arrLeft.setText("<")
         self.arrDown.setText("v")
 
-        self.newDirection = ""
-        self.CPS = 1
-        self.cellCount = 21
-        self.powerups = True
-        self.closedBox = True
-        self.randomWall = True
-        self.__gameMatrix = []
-
-        self.cellWidth = int(500 / self.cellCount)
-        self.myCanvasSize = self.cellWidth * self.cellCount
-        self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
-        self.myCanvasPaddingY = 100
-
-        self.__paintFlag = True
-        self.timer.stop()
+    # TODO potrzebne? Kiedy będzie wykorzystywane? na razie nie widzę kiedy - Szymon
+    # def hardReset(self):
+    #     self.label_3.setText("HIGH SCORE")
+    #     self.label_4.setText("SCORE")
+    #     self.scoreHigh.setText("999999")
+    #     self.scoreCurrent.setText("000009")
+    #     self.arrRight.setText(">")
+    #     self.arrUp.setText("^")
+    #     self.arrLeft.setText("<")
+    #     self.arrDown.setText("v")
+    #
+    #     self.newDirection = ""
+    #     self.CPS = 1
+    #     self.cellCount = 21
+    #     self.powerups = True
+    #     self.closedBox = True
+    #     self.randomWall = True
+    #     self.__gameMatrix = []
+    #
+    #     self.cellWidth = int(500 / self.cellCount)
+    #     self.myCanvasSize = self.cellWidth * self.cellCount
+    #     self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
+    #     self.myCanvasPaddingY = 100
+    #
+    #     self.__paintFlag = True
+    #     self.timer.stop()
 
     def newGame(self):
         self.timer.stop()
 
-        self.__gameMatrix = []
+        self.newDirection = ""
+        self.Python.direction = ""
+        self.Python.tail = []
+        self.Python.head.x = int(self.cellCount/2)
+        self.Python.head.y = int(self.cellCount/2)
+
+        self.gameMatrix = []
         for i in range(self._cellCount):
             temp = []
             for j in range(self._cellCount):
                 temp.append(0)
-            self.__gameMatrix.append(temp)
+            self.gameMatrix.append(temp)
 
         if self.closedBox:
             for i in range(self._cellCount):
-                self.__gameMatrix[i][0] = 7
-                self.__gameMatrix[0][i] = 7
-                self.__gameMatrix[i][self.cellCount-1] = 7
-                self.__gameMatrix[self.cellCount-1][i] = 7
+                self.gameMatrix[i][0] = 7
+                self.gameMatrix[0][i] = 7
+                self.gameMatrix[i][self.cellCount-1] = 7
+                self.gameMatrix[self.cellCount-1][i] = 7
 
         if self.randomWall:
-            randY1 = randrange(3, int(self.cellCount/2))
-            randY2 = randrange(int(self.cellCount/2)+1, self.cellCount-3)
+            randY1 = randrange(3, int(self.cellCount/2-2))
+            randY2 = randrange(int(self.cellCount/2)+3, self.cellCount-3)
             for i in range(self._cellCount-6):
-                self.__gameMatrix[i+3][randY1] = 7
-                self.__gameMatrix[i+3][randY2] = 7
+                self.gameMatrix[i+3][randY1] = 7
+                self.gameMatrix[i+3][randY2] = 7
 
+        self.gameOver = False
         self.timer.start(int(1000/self.CPS))
 
     def onTimeout(self):
-        self.__paintFlag = True
+        self.paintFlag = True
+        if not self.gameOver:
+            self.gameStep()
         self.update()
 
+    def gameStep(self):
+        if self.checkCollision():
+            self.gameOver = True
+        else:
+            self.moveSnake(self.checkFoodCollision())
+
+    def checkCollision(self):
+        if self.gameMatrix[self.Python.head.x][self.Python.head.y] == 7:
+            return True
+            # TODO dodać alert - wyskakujące okienko że game over
+
+        for i in range(len(self.Python.tail)):
+            if self.Python.tail[i].x == self.Python.head.x and self.Python.tail[i].y == self.Python.head.y:
+                return True
+                # TODO dodać alert - wyskakujące okienko że game over
+
+        return False
+
+    def checkFoodCollision(self):
+        temp = self.gameMatrix[self.Python.head.x][self.Python.head.y]
+        if temp == 1:
+            # self.spawnFoodNormal() TODO
+            # self.score+=1  TODO
+            pass
+        elif temp == 2:
+            # self.spawnFoodSuper() TODO
+            # self.score+=5 (balans później) TODO
+            pass
+        self.gameMatrix[self.Python.head.x][self.Python.head.y] = 0
+        return temp
+
+    def moveSnake(self, situation):
+
+        # Zakaz pójścia węża 'w tył'
+        tbool1 = self.newDirection == "N" and self.Python.direction == "S"
+        tbool2 = self.newDirection == "E" and self.Python.direction == "W"
+        tbool3 = self.newDirection == "W" and self.Python.direction == "E"
+        tbool4 = self.newDirection == "S" and self.Python.direction == "N"
+        if not (tbool1 or tbool2 or tbool3 or tbool4):
+            self.Python.direction = self.newDirection
+
+        if situation == 0:
+            self.Python.tailMove()
+            # self.Python.tailMoveEating() # do testów poruszania się, gdy nie ma jeszcze jedzenia na planszy
+        elif situation == 1:
+            self.Python.tailMoveEating()
+        elif situation == 2:
+            # TODO - przyspieszenie
+            self.Python.tailMoveEating()
+
     def paintEvent(self, e):
-        if self.__paintFlag:
+        if self.paintFlag:
             print("paint")
 
             # Kolory TODO self?
             backgroundColor = QColor(153, 204, 255)
             wallColor = QColor(0, 0, 0)
+            foodNormalColor = QColor(255, 0, 0)
+            foodSuperColor = QColor(255, 165, 0)
 
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
             x0 = int(self.myCanvasPaddingX)
-            xn = int(x0 + width)
             y0 = int(self.myCanvasPaddingY)
-            yn = int(y0 + width)
 
             painter = QPainter(self)
 
             painter.setBrush(backgroundColor)
             painter.setPen(Qt.NoPen)  # rysowanie bez krawędzi
-            painter.drawRect(x0, y0, width, width)
+            painter.drawRect(x0, y0, width, width)  # tło
 
-            for i in range(self._cellCount):
-                for j in range(self._cellCount):
-                    if self.__gameMatrix[i][j] == 7:
+            for i in range(self.cellCount):
+                for j in range(self.cellCount):
+
+                    if self.gameMatrix[i][j] == 7:
                         painter.setBrush(wallColor)
-                    elif self.__gameMatrix[i][j] == 1:
-                        # kolor = czerwony
-                        pass
-                    elif self.__gameMatrix[i][j] == 2:
-                        # kolor = pomarańczowy
-                        pass
+
+                    elif self.gameMatrix[i][j] == 1:
+                        painter.setBrush(foodNormalColor)
+
+                    elif self.gameMatrix[i][j] == 2:
+                        painter.setBrush(foodSuperColor)
+
                     else:
                         painter.setBrush(backgroundColor)
-                    painter.drawRect(int(x0+(i*self.cellWidth)), int(y0+(j*self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
 
-        self.__paintFlag = False
+                    painter.drawRect(
+                        int(x0+(i*self.cellWidth))
+                        , int(y0+(j*self.cellWidth))
+                        , int(self.cellWidth)
+                        , int(self.cellWidth))
+
+            # Rysowanie węża
+            painter.setBrush(self.Python.tailColor)
+            for i in range(len(self.Python.tail)):
+                painter.drawRect(int(x0 + 1 + (self.Python.tail[i].x * self.cellWidth)),
+                                 int(y0 + 1 + (self.Python.tail[i].y * self.cellWidth)),
+                                 int(self.cellWidth)-2,
+                                 int(self.cellWidth)-2)
+
+            painter.setBrush(self.Python.headColor)
+            painter.drawRect(int(x0+(self.Python.head.x * self.cellWidth)), int(y0+(self.Python.head.y * self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
+
+        self.paintFlag = False
 
     def arrRightClicked(self):
         self.newDirection = "E"
-        print(self.newDirection)
 
     def arrUpClicked(self):
         self.newDirection = "N"
-        print(self.newDirection)
 
     def arrLeftClicked(self):
         self.newDirection = "W"
-        print(self.newDirection)
 
     def arrDownClicked(self):
         self.newDirection = "S"
-        print(self.newDirection)
 
 
 # test
@@ -332,3 +423,5 @@ interface = GameView()
 interface.show()
 interface.newGame()
 sys.exit(app.exec_())
+
+# TODO dodać komentarze
