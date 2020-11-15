@@ -6,7 +6,7 @@
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
-#           01.11.2020 | Michał Kopałka     | Utworzenie
+#           15.11.2020 | Michał Kopałka     | Utworzenie
 #
 #           TODO: upewnić się co do działania przekazywania danych pomiędzy menu a grą
 #
