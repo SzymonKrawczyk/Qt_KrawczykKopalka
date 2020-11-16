@@ -20,6 +20,9 @@
 #           14.11.2020 | Szymon Krawczyk    | Usunięcie metody hardReset na próbę (nie wydaje się potrzebna)
 #           14.11.2020 | Szymon Krawczyk    | Dodanie poruszania się węża
 #           14.11.2020 | Szymon Krawczyk    | Rysowanie v2: Rysowanie węża i jego ogonu
+#           16.11.2020 | Szymon Krawczyk    | Przeniesienie kolorów z klasy Snake tutaj
+#           16.11.2020 | Szymon Krawczyk    | Dodanie funkcjonalności 'zawijania' się planszy
+#                                           |   (teleportacji z jednej strony na drugą)
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -116,7 +119,7 @@ class GameView(QWidget):
 
         # Deklaracja pól i wartości domyślne
         self.newDirection = ""
-        self.CPS = 1
+        self.CPS = 2
         self.cellCount = 21
         self.powerups = True
         self.closedBox = True
@@ -189,7 +192,7 @@ class GameView(QWidget):
 
         # self.myCanvas = QtWidgets.QWidget(self)
         self.cellWidth = int((self.width-100) / self.cellCount)
-        self.myCanvasSize = self.cellWidth * self.cellCount
+        self.myCanvasSize = int(self.cellWidth * self.cellCount)
         self.myCanvasPaddingX = (self.width-self.myCanvasSize)/2
         self.myCanvasPaddingY = 100
         # self.myCanvas.setGeometry(QtCore.QRect(int(tempPaddingX), 100, self.myCanvasSize, self.myCanvasSize))
@@ -232,33 +235,6 @@ class GameView(QWidget):
         self.arrLeft.setText("<")
         self.arrDown.setText("v")
 
-    # TODO potrzebne? Kiedy będzie wykorzystywane? na razie nie widzę kiedy - Szymon
-    # def hardReset(self):
-    #     self.label_3.setText("HIGH SCORE")
-    #     self.label_4.setText("SCORE")
-    #     self.scoreHigh.setText("999999")
-    #     self.scoreCurrent.setText("000009")
-    #     self.arrRight.setText(">")
-    #     self.arrUp.setText("^")
-    #     self.arrLeft.setText("<")
-    #     self.arrDown.setText("v")
-    #
-    #     self.newDirection = ""
-    #     self.CPS = 1
-    #     self.cellCount = 21
-    #     self.powerups = True
-    #     self.closedBox = True
-    #     self.randomWall = True
-    #     self.__gameMatrix = []
-    #
-    #     self.cellWidth = int(500 / self.cellCount)
-    #     self.myCanvasSize = self.cellWidth * self.cellCount
-    #     self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
-    #     self.myCanvasPaddingY = 100
-    #
-    #     self.__paintFlag = True
-    #     self.timer.stop()
-
     def newGame(self):
         self.timer.stop()
 
@@ -269,14 +245,14 @@ class GameView(QWidget):
         self.Python.head.y = int(self.cellCount/2)
 
         self.gameMatrix = []
-        for i in range(self._cellCount):
+        for i in range(self.cellCount):
             temp = []
-            for j in range(self._cellCount):
+            for j in range(self.cellCount):
                 temp.append(0)
             self.gameMatrix.append(temp)
 
         if self.closedBox:
-            for i in range(self._cellCount):
+            for i in range(self.cellCount):
                 self.gameMatrix[i][0] = 7
                 self.gameMatrix[0][i] = 7
                 self.gameMatrix[i][self.cellCount-1] = 7
@@ -285,12 +261,14 @@ class GameView(QWidget):
         if self.randomWall:
             randY1 = randrange(3, int(self.cellCount/2-2))
             randY2 = randrange(int(self.cellCount/2)+3, self.cellCount-3)
-            for i in range(self._cellCount-6):
+            for i in range(self.cellCount-6):
                 self.gameMatrix[i+3][randY1] = 7
                 self.gameMatrix[i+3][randY2] = 7
 
         self.gameOver = False
         self.timer.start(int(1000/self.CPS))
+        # self.paintFlag = True
+        # self.update()
 
     def onTimeout(self):
         self.paintFlag = True
@@ -348,6 +326,19 @@ class GameView(QWidget):
             # TODO - przyspieszenie
             self.Python.tailMoveEating()
 
+        if not self.closedBox:
+            self.movementCorrection()
+
+    def movementCorrection(self):
+        if self.Python.head.x < 0:
+            self.Python.head.x = self.cellCount-1
+        elif self.Python.head.y < 0:
+            self.Python.head.y = self.cellCount-1
+        elif self.Python.head.x > self.cellCount-1:
+            self.Python.head.x = 0
+        elif self.Python.head.y > self.cellCount-1:
+            self.Python.head.y = 0
+
     def paintEvent(self, e):
         if self.paintFlag:
             print("paint")
@@ -357,6 +348,8 @@ class GameView(QWidget):
             wallColor = QColor(0, 0, 0)
             foodNormalColor = QColor(255, 0, 0)
             foodSuperColor = QColor(255, 165, 0)
+            snakeTailColor = QColor(0, 128, 0)
+            snakeHeadColor = QColor(0, 100, 0)
 
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
@@ -374,12 +367,15 @@ class GameView(QWidget):
 
                     if self.gameMatrix[i][j] == 7:
                         painter.setBrush(wallColor)
+                        # figura - kwadrat
 
                     elif self.gameMatrix[i][j] == 1:
                         painter.setBrush(foodNormalColor)
+                        # figura - kółko? romb?
 
                     elif self.gameMatrix[i][j] == 2:
                         painter.setBrush(foodSuperColor)
+                        # figura - kółko? romb?
 
                     else:
                         painter.setBrush(backgroundColor)
@@ -391,14 +387,14 @@ class GameView(QWidget):
                         , int(self.cellWidth))
 
             # Rysowanie węża
-            painter.setBrush(self.Python.tailColor)
+            painter.setBrush(snakeTailColor)
             for i in range(len(self.Python.tail)):
                 painter.drawRect(int(x0 + 1 + (self.Python.tail[i].x * self.cellWidth)),
                                  int(y0 + 1 + (self.Python.tail[i].y * self.cellWidth)),
                                  int(self.cellWidth)-2,
                                  int(self.cellWidth)-2)
 
-            painter.setBrush(self.Python.headColor)
+            painter.setBrush(snakeHeadColor)
             painter.drawRect(int(x0+(self.Python.head.x * self.cellWidth)), int(y0+(self.Python.head.y * self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
 
         self.paintFlag = False
@@ -415,13 +411,9 @@ class GameView(QWidget):
     def arrDownClicked(self):
         self.newDirection = "S"
 
-
-# test
 # TODO Usunąć
-app = QApplication(sys.argv)
-interface = GameView()
-interface.show()
-interface.newGame()
-sys.exit(app.exec_())
-
-# TODO dodać komentarze
+# app = QApplication(sys.argv)
+# interface = GameView()
+# interface.show()
+# interface.newGame()
+# sys.exit(app.exec_())
