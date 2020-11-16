@@ -23,6 +23,7 @@
 #           16.11.2020 | Szymon Krawczyk    | Przeniesienie kolorów z klasy Snake tutaj
 #           16.11.2020 | Szymon Krawczyk    | Dodanie funkcjonalności 'zawijania' się planszy
 #                                           |   (teleportacji z jednej strony na drugą)
+#           16.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego - wielkość rysowania przy zmianie długości boku
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -237,6 +238,11 @@ class GameView(QWidget):
 
     def newGame(self):
         self.timer.stop()
+
+        # Poprawa wielkości rysowania przy zmianie długości boku
+        self.cellWidth = int((self.width - 100) / self.cellCount)
+        self.myCanvasSize = int(self.cellWidth * self.cellCount)
+        self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
 
         self.newDirection = ""
         self.Python.direction = ""

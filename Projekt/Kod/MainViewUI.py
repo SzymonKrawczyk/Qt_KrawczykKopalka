@@ -42,8 +42,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Python game screen")
         self.setCentralWidget(self.GameWindow)
         # TODO fix TitleWindow sliders
-        # self.GameWindow.CPS = self.TitleWindow.CPS
-        # self.GameWindow.cellCount = self.TitleWindow.cellCount
+        self.GameWindow.CPS = self.TitleWindow.CPS
+        self.GameWindow.cellCount = self.TitleWindow.cellCount
         self.GameWindow.powerups = self.TitleWindow.powerups
         self.GameWindow.closedBox = self.TitleWindow.closedBox
         self.GameWindow.randomWall = self.TitleWindow.randomWall
