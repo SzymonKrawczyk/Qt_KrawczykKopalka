@@ -15,6 +15,7 @@
 #           15.11.2020 | Michał Kopałka     | Utworzenie wersji preAlpha
 #           16.11.2020 | Szymon Krawczyk    | Dodanie właściwości jako wartości checkboxów i sliderów
 #           16.11.2020 | Szymon Krawczyk    | Poprawa komentarzy
+#           17.11.2020 | Szymon Krawczyk    | Zmiana wartości minimalnej wielkości planszy w celu uniknięcia błędu
 #
 #         TODO: dodanie liczników na końcu każdego slidera ( o dziwo przy projektowaniu nie przyszło mi to do głowy )
 #         TODO: zrobienie porządnej instrukcji ( ale lorem ipsum też spoczko )
@@ -111,7 +112,7 @@ class TitleView(QWidget):
         self.horizontalLayout_6.addWidget(self.label_4)
 
         self.horizontalSlider = QtWidgets.QSlider(self.verticalLayoutWidget)
-        self.horizontalSlider.setMinimum(11)
+        self.horizontalSlider.setMinimum(13)
         self.horizontalSlider.setMaximum(51)
         self.horizontalSlider.setSliderPosition(31)
         self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)

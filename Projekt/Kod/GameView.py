@@ -24,6 +24,7 @@
 #           16.11.2020 | Szymon Krawczyk    | Dodanie funkcjonalności 'zawijania' się planszy
 #                                           |   (teleportacji z jednej strony na drugą)
 #           16.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego - wielkość rysowania przy zmianie długości boku
+#           17.11.2020 | Szymon Krawczyk    | Dodanie spawnowania jedzenia na wolnych miejscach
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -131,6 +132,8 @@ class GameView(QWidget):
 
         self.Python = Snake()
         self.gameOver = False
+
+        self.score = 0
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.onTimeout)
@@ -244,6 +247,7 @@ class GameView(QWidget):
         self.myCanvasSize = int(self.cellWidth * self.cellCount)
         self.myCanvasPaddingX = (self.width - self.myCanvasSize) / 2
 
+        self.score = 0
         self.newDirection = ""
         self.Python.direction = ""
         self.Python.tail = []
@@ -264,6 +268,7 @@ class GameView(QWidget):
                 self.gameMatrix[i][self.cellCount-1] = 7
                 self.gameMatrix[self.cellCount-1][i] = 7
 
+        # TODO dopracować
         if self.randomWall:
             randY1 = randrange(3, int(self.cellCount/2-2))
             randY2 = randrange(int(self.cellCount/2)+3, self.cellCount-3)
@@ -271,10 +276,12 @@ class GameView(QWidget):
                 self.gameMatrix[i+3][randY1] = 7
                 self.gameMatrix[i+3][randY2] = 7
 
+        self.spawnFoodNormal()
+        if self.powerups:
+            self.spawnFoodSuper()
+
         self.gameOver = False
         self.timer.start(int(1000/self.CPS))
-        # self.paintFlag = True
-        # self.update()
 
     def onTimeout(self):
         self.paintFlag = True
@@ -303,15 +310,40 @@ class GameView(QWidget):
     def checkFoodCollision(self):
         temp = self.gameMatrix[self.Python.head.x][self.Python.head.y]
         if temp == 1:
-            # self.spawnFoodNormal() TODO
-            # self.score+=1  TODO
-            pass
+            self.spawnFoodNormal()
+            self.score += 1
         elif temp == 2:
-            # self.spawnFoodSuper() TODO
-            # self.score+=5 (balans później) TODO
-            pass
+            self.spawnFoodSuper()
+            self.score += 5
         self.gameMatrix[self.Python.head.x][self.Python.head.y] = 0
         return temp
+
+    def spawnFoodNormal(self):
+        tempX, tempY = self.findFreePosition()
+        self.gameMatrix[tempX][tempY] = 1
+
+    def spawnFoodSuper(self):
+        tempX, tempY = self.findFreePosition()
+        self.gameMatrix[tempX][tempY] = 2
+
+    def findFreePosition(self):
+        while True:
+            freeX = randrange(0, self.cellCount-1)
+            freeY = randrange(0, self.cellCount-1)
+            error = False
+
+            if self.gameMatrix[freeX][freeY] != 0:
+                error = True
+            elif freeX == self.Python.head.x and freeY == self.Python.head.y:
+                error = True
+            else:
+                for i in self.Python.tail:
+                    if freeX == i.x and freeY == i.y:
+                        error = True
+                        break
+
+            if not error:
+                return freeX, freeY
 
     def moveSnake(self, situation):
 
@@ -325,7 +357,6 @@ class GameView(QWidget):
 
         if situation == 0:
             self.Python.tailMove()
-            # self.Python.tailMoveEating() # do testów poruszania się, gdy nie ma jeszcze jedzenia na planszy
         elif situation == 1:
             self.Python.tailMoveEating()
         elif situation == 2:
@@ -395,10 +426,10 @@ class GameView(QWidget):
             # Rysowanie węża
             painter.setBrush(snakeTailColor)
             for i in range(len(self.Python.tail)):
-                painter.drawRect(int(x0 + 1 + (self.Python.tail[i].x * self.cellWidth)),
-                                 int(y0 + 1 + (self.Python.tail[i].y * self.cellWidth)),
-                                 int(self.cellWidth)-2,
-                                 int(self.cellWidth)-2)
+                painter.drawRect(int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth)),
+                                 int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth)),
+                                 int(self.cellWidth)-4,
+                                 int(self.cellWidth)-4)
 
             painter.setBrush(snakeHeadColor)
             painter.drawRect(int(x0+(self.Python.head.x * self.cellWidth)), int(y0+(self.Python.head.y * self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
@@ -416,10 +447,3 @@ class GameView(QWidget):
 
     def arrDownClicked(self):
         self.newDirection = "S"
-
-# TODO Usunąć
-# app = QApplication(sys.argv)
-# interface = GameView()
-# interface.show()
-# interface.newGame()
-# sys.exit(app.exec_())
