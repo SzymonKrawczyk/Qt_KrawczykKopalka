@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
     def startGameWindow(self):
         self.setWindowTitle("Python game screen")
         self.setCentralWidget(self.GameWindow)
-        # TODO fix TitleWindow sliders
         self.GameWindow.CPS = self.TitleWindow.CPS
         self.GameWindow.cellCount = self.TitleWindow.cellCount
         self.GameWindow.powerups = self.TitleWindow.powerups

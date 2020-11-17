@@ -25,6 +25,9 @@
 #                                           |   (teleportacji z jednej strony na drugą)
 #           16.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego - wielkość rysowania przy zmianie długości boku
 #           17.11.2020 | Szymon Krawczyk    | Dodanie spawnowania jedzenia na wolnych miejscach
+#           17.11.2020 | Szymon Krawczyk    | Poprawa efektywności rysowania; zmiana rysowania jedzenia na koła
+#           17.11.2020 | Szymon Krawczyk    | Przeniesienie kolorów węża jako stałe poza klasą (usunąć?)
+#           17.11.2020 | Szymon Krawczyk    | Dodanie funkcjonalności przyspieszenia gry i zmiany koloru węża
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -45,6 +48,11 @@ from PyQt5.QtWidgets import QWidget, QApplication
 
 from Snake import Snake
 
+# TODO delete?
+NORMAL_HEADCOLOR = QColor(0, 100, 0)
+NORMAL_TAILCOLOR = QColor(0, 128, 0)
+BOOST_TAILCOLOR = QColor(245, 138, 27)
+BOOST_HEADCOLOR = QColor(252, 172, 71)
 
 class GameView(QWidget):
 
@@ -131,12 +139,18 @@ class GameView(QWidget):
         self.paintFlag = True
 
         self.Python = Snake()
+        self.snakeTailColor = NORMAL_TAILCOLOR
+        self.snakeHeadColor = NORMAL_HEADCOLOR
         self.gameOver = False
 
+        self.boost = False
+        self.boostTimer = QTimer(self)
+        self.boostTimer.timeout.connect(self.stopBoost)
         self.score = 0
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.onTimeout)
+        self.timerHelp = False
 
         # UI wygenerowane automatycznie
         self.width = 600
@@ -278,16 +292,19 @@ class GameView(QWidget):
 
         self.spawnFoodNormal()
         if self.powerups:
-            self.spawnFoodSuper()
+            # self.spawnFoodSuper()
+            self.stopBoost()
 
         self.gameOver = False
-        self.timer.start(int(1000/self.CPS))
+        self.timer.start(int(1000/(self.CPS*2)))
 
     def onTimeout(self):
-        self.paintFlag = True
-        if not self.gameOver:
-            self.gameStep()
-        self.update()
+        if self.timerHelp or self.boost:
+            self.paintFlag = True
+            if not self.gameOver:
+                self.gameStep()
+            self.update()
+        self.timerHelp = not self.timerHelp
 
     def gameStep(self):
         if self.checkCollision():
@@ -313,7 +330,6 @@ class GameView(QWidget):
             self.spawnFoodNormal()
             self.score += 1
         elif temp == 2:
-            self.spawnFoodSuper()
             self.score += 5
         self.gameMatrix[self.Python.head.x][self.Python.head.y] = 0
         return temp
@@ -360,11 +376,26 @@ class GameView(QWidget):
         elif situation == 1:
             self.Python.tailMoveEating()
         elif situation == 2:
-            # TODO - przyspieszenie
+            self.startBoost(10000)
             self.Python.tailMoveEating()
 
         if not self.closedBox:
             self.movementCorrection()
+
+    def startBoost(self, duration):
+
+        self.snakeTailColor = BOOST_TAILCOLOR
+        self.snakeHeadColor = BOOST_HEADCOLOR
+        self.boost = True
+        self.boostTimer.start(duration)
+
+    def stopBoost(self):
+
+        self.boostTimer.stop()
+        self.snakeTailColor = NORMAL_TAILCOLOR
+        self.snakeHeadColor = NORMAL_HEADCOLOR
+        self.boost = False
+        self.spawnFoodSuper()
 
     def movementCorrection(self):
         if self.Python.head.x < 0:
@@ -385,8 +416,7 @@ class GameView(QWidget):
             wallColor = QColor(0, 0, 0)
             foodNormalColor = QColor(255, 0, 0)
             foodSuperColor = QColor(255, 165, 0)
-            snakeTailColor = QColor(0, 128, 0)
-            snakeHeadColor = QColor(0, 100, 0)
+
 
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
@@ -404,35 +434,42 @@ class GameView(QWidget):
 
                     if self.gameMatrix[i][j] == 7:
                         painter.setBrush(wallColor)
-                        # figura - kwadrat
+                        painter.drawRect(
+                            int(x0 + (i * self.cellWidth))
+                            , int(y0 + (j * self.cellWidth))
+                            , int(self.cellWidth)
+                            , int(self.cellWidth))
 
                     elif self.gameMatrix[i][j] == 1:
                         painter.setBrush(foodNormalColor)
-                        # figura - kółko? romb?
+                        painter.drawEllipse(
+                            int(x0 + 3 + (i * self.cellWidth))
+                            , int(y0 + 3 + (j * self.cellWidth))
+                            , int(self.cellWidth)-6
+                            , int(self.cellWidth)-6)
 
                     elif self.gameMatrix[i][j] == 2:
                         painter.setBrush(foodSuperColor)
-                        # figura - kółko? romb?
-
-                    else:
-                        painter.setBrush(backgroundColor)
-
-                    painter.drawRect(
-                        int(x0+(i*self.cellWidth))
-                        , int(y0+(j*self.cellWidth))
-                        , int(self.cellWidth)
-                        , int(self.cellWidth))
+                        painter.drawEllipse(
+                            int(x0 + 3 + (i * self.cellWidth))
+                            , int(y0 + 3 + (j * self.cellWidth))
+                            , int(self.cellWidth)-6
+                            , int(self.cellWidth)-6)
 
             # Rysowanie węża
-            painter.setBrush(snakeTailColor)
+            painter.setBrush(self.snakeTailColor)
             for i in range(len(self.Python.tail)):
                 painter.drawRect(int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth)),
                                  int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth)),
                                  int(self.cellWidth)-4,
                                  int(self.cellWidth)-4)
 
-            painter.setBrush(snakeHeadColor)
-            painter.drawRect(int(x0+(self.Python.head.x * self.cellWidth)), int(y0+(self.Python.head.y * self.cellWidth)), int(self.cellWidth), int(self.cellWidth))
+            painter.setBrush(self.snakeHeadColor)
+            painter.drawRect(
+                int(x0+(self.Python.head.x * self.cellWidth))
+                , int(y0+(self.Python.head.y * self.cellWidth))
+                , int(self.cellWidth)
+                , int(self.cellWidth))
 
         self.paintFlag = False
 
