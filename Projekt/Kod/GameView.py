@@ -28,7 +28,10 @@
 #           17.11.2020 | Szymon Krawczyk    | Poprawa efektywności rysowania; zmiana rysowania jedzenia na koła
 #           17.11.2020 | Szymon Krawczyk    | Przeniesienie kolorów węża jako stałe poza klasą (usunąć?)
 #           17.11.2020 | Szymon Krawczyk    | Dodanie funkcjonalności przyspieszenia gry i zmiany koloru węża
-#
+#           18.11.2020 | Michał Kopałka     | Dodanie obsługi klawiszy
+#           18.11.2020 | Michał Kopałka     | Dodanie okna informującego o przegranej grze
+#           18.11.2020 | Michał Kopałka     | Dodanie funkcji endGame zatrzymującej wszystkie QTimery i onPress keyboard
+
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
 #       0-puste
@@ -44,15 +47,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
 
-from Snake import Snake
+from Projekt.Szablony.Snake import Snake
+import keyboard
+
 
 # TODO delete?
 NORMAL_HEADCOLOR = QColor(0, 100, 0)
 NORMAL_TAILCOLOR = QColor(0, 128, 0)
 BOOST_TAILCOLOR = QColor(245, 138, 27)
 BOOST_HEADCOLOR = QColor(252, 172, 71)
+
 
 class GameView(QWidget):
 
@@ -298,6 +304,16 @@ class GameView(QWidget):
         self.gameOver = False
         self.timer.start(int(1000/(self.CPS*2)))
 
+        keyboard.on_press_key("a", lambda _: self.arrLeftClicked())
+        keyboard.on_press_key("d", lambda _: self.arrRightClicked())
+        keyboard.on_press_key("w", lambda _: self.arrUpClicked())
+        keyboard.on_press_key("s", lambda _: self.arrDownClicked())
+
+    def endGame(self):
+        self.timer.stop()
+        self.boostTimer.stop()
+        keyboard.unhook_all()
+
     def onTimeout(self):
         if self.timerHelp or self.boost:
             self.paintFlag = True
@@ -314,11 +330,15 @@ class GameView(QWidget):
 
     def checkCollision(self):
         if self.gameMatrix[self.Python.head.x][self.Python.head.y] == 7:
+            self.gameOverWindow()
+            self.endGame
             return True
             # TODO dodać alert - wyskakujące okienko że game over
 
         for i in range(len(self.Python.tail)):
             if self.Python.tail[i].x == self.Python.head.x and self.Python.tail[i].y == self.Python.head.y:
+                self.gameOverWindow()
+                self.endGame
                 return True
                 # TODO dodać alert - wyskakujące okienko że game over
 
@@ -484,3 +504,9 @@ class GameView(QWidget):
 
     def arrDownClicked(self):
         self.newDirection = "S"
+
+    def gameOverWindow(self):
+        popUpWindow = QMessageBox()
+        popUpWindow.setWindowTitle("Koniec gry")
+        popUpWindow.setText("Przegrałeś")
+        x = popUpWindow.exec_()
