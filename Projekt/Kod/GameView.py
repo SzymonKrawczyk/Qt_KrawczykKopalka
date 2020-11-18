@@ -33,6 +33,7 @@
 #           18.11.2020 | Michał Kopałka     | Dodanie funkcji endGame zatrzymującej wszystkie QTimery i onPress keyboard
 #           18.11.2020 | Szymon Krawczyk    | Usunięcie endGame()
 #           18.11.2020 | Szymon Krawczyk    | Dodanie grania ponownej gry po przegraniu
+#           18.11.2020 | Szymon Krawczyk    | Poprawa generacji losowych ścian
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -291,11 +292,11 @@ class GameView(QWidget):
 
         # TODO dopracować?
         if self.randomWall:
-            randY1 = randrange(3, int(self.cellCount/2-2))
-            randY2 = randrange(int(self.cellCount/2)+3, self.cellCount-3)
-            for i in range(self.cellCount-6):
-                self.gameMatrix[i+3][randY1] = 7
-                self.gameMatrix[i+3][randY2] = 7
+            randY1 = randrange(2, int(self.cellCount/2-1))
+            randY2 = randrange(int(self.cellCount/2)+2, self.cellCount-2)
+            for i in range(self.cellCount-4):
+                self.gameMatrix[i+2][randY1] = 7
+                self.gameMatrix[i+2][randY2] = 7
 
         self.spawnFoodNormal()
         if self.powerups:
