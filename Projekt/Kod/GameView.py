@@ -31,13 +31,16 @@
 #           18.11.2020 | Michał Kopałka     | Dodanie obsługi klawiszy
 #           18.11.2020 | Michał Kopałka     | Dodanie okna informującego o przegranej grze
 #           18.11.2020 | Michał Kopałka     | Dodanie funkcji endGame zatrzymującej wszystkie QTimery i onPress keyboard
-
+#           18.11.2020 | Szymon Krawczyk    | Usunięcie endGame()
+#           18.11.2020 | Szymon Krawczyk    | Dodanie grania ponownej gry po przegraniu
+#
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
 #       0-puste
 #       1-jedzenie
 #       2-super jedzenie
 #       7-ściana
+#
 
 
 import sys
@@ -49,15 +52,15 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
 
-from Projekt.Szablony.Snake import Snake
+from Snake import Snake
 import keyboard
 
 
 # TODO delete?
 NORMAL_HEADCOLOR = QColor(0, 100, 0)
 NORMAL_TAILCOLOR = QColor(0, 128, 0)
-BOOST_TAILCOLOR = QColor(245, 138, 27)
-BOOST_HEADCOLOR = QColor(252, 172, 71)
+BOOST_TAILCOLOR = QColor(252, 172, 71)
+BOOST_HEADCOLOR = QColor(245, 138, 27)
 
 
 class GameView(QWidget):
@@ -93,7 +96,7 @@ class GameView(QWidget):
 
     @cellCount.setter
     def cellCount(self, value):
-        if value % 2 == 0 or value < 11 or value > 41:
+        if value % 2 == 0 or value < 11 or value > 51:
             raise ValueError
         self._cellCount = value
 
@@ -214,13 +217,10 @@ class GameView(QWidget):
         self.verticalLayout_2.addWidget(self.scoreCurrent)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
 
-        # self.myCanvas = QtWidgets.QWidget(self)
         self.cellWidth = int((self.width-100) / self.cellCount)
         self.myCanvasSize = int(self.cellWidth * self.cellCount)
         self.myCanvasPaddingX = (self.width-self.myCanvasSize)/2
         self.myCanvasPaddingY = 100
-        # self.myCanvas.setGeometry(QtCore.QRect(int(tempPaddingX), 100, self.myCanvasSize, self.myCanvasSize))
-        # self.myCanvas.setObjectName("myCanvas")
 
         self.gridLayoutWidget = QtWidgets.QWidget(self)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(180, 610, 239, 161))
@@ -249,7 +249,6 @@ class GameView(QWidget):
         self.arrDown.clicked.connect(self.arrDownClicked)
         self.gridLayout.addWidget(self.arrDown, 2, 1, 1, 1)
 
-        # self.hardReset()
         self.label_3.setText("HIGH SCORE")
         self.label_4.setText("SCORE")
         self.scoreHigh.setText("999999")
@@ -261,6 +260,8 @@ class GameView(QWidget):
 
     def newGame(self):
         self.timer.stop()
+
+        self.gameOver = False
 
         # Poprawa wielkości rysowania przy zmianie długości boku
         self.cellWidth = int((self.width - 100) / self.cellCount)
@@ -288,7 +289,7 @@ class GameView(QWidget):
                 self.gameMatrix[i][self.cellCount-1] = 7
                 self.gameMatrix[self.cellCount-1][i] = 7
 
-        # TODO dopracować
+        # TODO dopracować?
         if self.randomWall:
             randY1 = randrange(3, int(self.cellCount/2-2))
             randY2 = randrange(int(self.cellCount/2)+3, self.cellCount-3)
@@ -309,38 +310,32 @@ class GameView(QWidget):
         keyboard.on_press_key("w", lambda _: self.arrUpClicked())
         keyboard.on_press_key("s", lambda _: self.arrDownClicked())
 
-    def endGame(self):
-        self.timer.stop()
-        self.boostTimer.stop()
-        keyboard.unhook_all()
+    # def endGame(self):
+    #     self.timer.stop()
+    #     self.boostTimer.stop()
+    #     keyboard.unhook_all()
 
     def onTimeout(self):
         if self.timerHelp or self.boost:
             self.paintFlag = True
+            print(self.gameOver)
+            self.gameOver = self.checkCollision()
             if not self.gameOver:
-                self.gameStep()
+                self.moveSnake(self.checkFoodCollision())
             self.update()
         self.timerHelp = not self.timerHelp
-
-    def gameStep(self):
-        if self.checkCollision():
-            self.gameOver = True
-        else:
-            self.moveSnake(self.checkFoodCollision())
 
     def checkCollision(self):
         if self.gameMatrix[self.Python.head.x][self.Python.head.y] == 7:
             self.gameOverWindow()
-            self.endGame
+            # self.endGame()
             return True
-            # TODO dodać alert - wyskakujące okienko że game over
 
         for i in range(len(self.Python.tail)):
             if self.Python.tail[i].x == self.Python.head.x and self.Python.tail[i].y == self.Python.head.y:
                 self.gameOverWindow()
-                self.endGame
+                # self.endGame()
                 return True
-                # TODO dodać alert - wyskakujące okienko że game over
 
         return False
 
@@ -437,7 +432,6 @@ class GameView(QWidget):
             foodNormalColor = QColor(255, 0, 0)
             foodSuperColor = QColor(255, 165, 0)
 
-
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
             x0 = int(self.myCanvasPaddingX)
@@ -510,3 +504,4 @@ class GameView(QWidget):
         popUpWindow.setWindowTitle("Koniec gry")
         popUpWindow.setText("Przegrałeś")
         x = popUpWindow.exec_()
+        self.newGame()
