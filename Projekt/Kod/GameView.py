@@ -54,6 +54,8 @@
 #           19.11.2020 | Szymon Krawczyk    | Poprawienie systemu zakańczania gry
 #           19.11.2020 | Szymon Krawczyk    | Dodanie balansu ustawień i wyniku -> trudniej = większy mnożnik punktów
 #           19.11.2020 | Szymon Krawczyk    | Dodanie komentarzy
+#           19.11.2020 | Michał Kopałka     | Dodanie odczytu i zapisu highscore z pliku
+#           19.11.2020 | Michał Kopałka     | Przeniesienie sprawdzania i zapisu wyniku do osobnej funkcji
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -306,7 +308,18 @@ class GameView(QWidget):
         self.Python.head.x = int(self.cellCount/2)
         self.Python.head.y = int(self.cellCount/2)
 
-        # self.highscore = 999999  # TODO pobieranie highscore z pliku
+        try:
+            with open("highscore.ini") as file:
+                fileContent = file.readline()
+                fileContent = fileContent.rstrip('\n')
+            self.highscore = float(fileContent)
+        except IOError:
+            print("highscore.ini file not found")
+            self.highscore = 0
+        except Exception:
+            print("highscore.ini file is empty")
+            self.highscore = 0
+
         self.scoreHigh.setText(self.intToScoreStr(self.highscore))
         self.scoreCurrent.setText(self.intToScoreStr(self.score))
 
@@ -579,10 +592,20 @@ class GameView(QWidget):
     def gameOverHandler(self):
         newHighScore = False
         if self.score > self.highscore:
-            self.highscore = self.score
             newHighScore = True
-        # TODO zapis high score jeżeli score > highscore
+
+        self.checkIfNewRecord()
         self.gameOverWindow(newHighScore)
+
+    def checkIfNewRecord(self):
+        if self.score > self.highscore:
+            self.highscore = self.score
+            try:
+                highScoreFile = open("highscore.ini", "w")
+                highScoreFile.write(str(self.highscore))
+                highScoreFile.close()
+            except IOError:
+                print("highscore.ini file not found")
 
     # TODO Działa, jednak czy jest to poprawne rozwiązanie? Czy GameView powinien wiedzieć jakie metody
     #  ma klasa go wykorzystująca?

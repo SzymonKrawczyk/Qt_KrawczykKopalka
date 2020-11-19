@@ -1,7 +1,5 @@
 # Klasa QWidgetu widoku ekranu tytułowego z ustawieniami
 #
-#   TODO Opis pliku, klas i metod w nim zawieranych
-#
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
@@ -62,14 +60,18 @@ class TitleView(QWidget):
         self.resize(600, 800)
         self.setMinimumSize(QtCore.QSize(600, 800))
         self.setMaximumSize(QtCore.QSize(600, 800))
+
         self.verticalLayoutWidget = QtWidgets.QWidget(self)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(0, 360, 601, 441))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.verticalLayout.setContentsMargins(40, 20, 40, 20)
         self.verticalLayout.setSpacing(10)
         self.verticalLayout.setObjectName("verticalLayout")
+
+
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.checkBox_2 = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -79,6 +81,8 @@ class TitleView(QWidget):
         self.checkBox_2.setObjectName("checkBox_2")
         self.horizontalLayout_3.addWidget(self.checkBox_2)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
+
+
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.checkBox = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -88,6 +92,8 @@ class TitleView(QWidget):
         self.checkBox.setObjectName("checkBox")
         self.horizontalLayout_4.addWidget(self.checkBox)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
+
+
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.checkBox_3 = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -97,17 +103,21 @@ class TitleView(QWidget):
         self.checkBox_3.setObjectName("checkBox_3")
         self.horizontalLayout_5.addWidget(self.checkBox_3)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
+
+
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setContentsMargins(20, -1, 20, -1)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.label_4 = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.label_4.setMinimumSize(QtCore.QSize(162, 0))
         self.label_4.setMaximumSize(QtCore.QSize(162, 16777215))
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_4.setFont(font)
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_6.addWidget(self.label_4)
+
         self.spinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget)
         self.spinBox.setMaximumSize(QtCore.QSize(45, 16777215))
         self.spinBox.setMinimum(11)
@@ -118,6 +128,7 @@ class TitleView(QWidget):
         self.horizontalLayout_6.addWidget(self.spinBox)
         self.horizontalSlider = QtWidgets.QSlider(self.verticalLayoutWidget)
         self.horizontalSlider.setMaximumSize(QtCore.QSize(267, 16777215))
+
         # setSingle Step nie działa tak jak powinno więc ustawiłem zakres na 5-25 gdzie
         # wartość slidera odpowiada (value*2)+1
         self.horizontalSlider.setMinimum(5)
@@ -131,17 +142,21 @@ class TitleView(QWidget):
         self.horizontalLayout_6.setStretch(1, 1)
         self.horizontalLayout_6.setStretch(2, 4)
         self.verticalLayout.addLayout(self.horizontalLayout_6)
+
+
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setContentsMargins(20, -1, 20, -1)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.label_3 = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.label_3.setMinimumSize(QtCore.QSize(162, 0))
         self.label_3.setMaximumSize(QtCore.QSize(162, 16777215))
+
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_3.setFont(font)
         self.label_3.setObjectName("label_3")
         self.horizontalLayout_7.addWidget(self.label_3)
+
         self.spinBox_2 = QtWidgets.QSpinBox(self.verticalLayoutWidget)
         self.spinBox_2.setMaximumSize(QtCore.QSize(45, 16777215))
         self.spinBox_2.setMinimum(1)
@@ -149,6 +164,7 @@ class TitleView(QWidget):
         self.spinBox_2.setProperty("value", 5)
         self.spinBox_2.setObjectName("spinBox_2")
         self.horizontalLayout_7.addWidget(self.spinBox_2)
+
         self.horizontalSlider_2 = QtWidgets.QSlider(self.verticalLayoutWidget)
         self.horizontalSlider_2.setMaximumSize(QtCore.QSize(267, 16777215))
         self.horizontalSlider_2.setMinimum(1)
@@ -162,6 +178,8 @@ class TitleView(QWidget):
         self.horizontalLayout_7.setStretch(1, 1)
         self.horizontalLayout_7.setStretch(2, 4)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
+
+
         self.label = QtWidgets.QLabel(self)
         self.label.setGeometry(QtCore.QRect(40, 30, 519, 49))
         self.label.setMaximumSize(QtCore.QSize(16777215, 100))
@@ -172,6 +190,8 @@ class TitleView(QWidget):
         self.label.setFont(font)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
+
+
         self.label_2 = QtWidgets.QLabel(self)
         self.label_2.setGeometry(QtCore.QRect(40, 100, 521, 221))
         self.label_2.setObjectName("label_2")
@@ -189,17 +209,17 @@ class TitleView(QWidget):
         self.spinBox.valueChanged.connect(self.spinBox1ValueChanged)
         self.spinBox_2.valueChanged.connect(self.spinBox2ValueChanged)
 
+
+    #funkcje zapewniające integralność sliderów ze spinboxami
     def slider1ValueChanged(self):
         self.spinBox.setValue((self.horizontalSlider.value() * 2) + 1)
-
     def slider2ValueChanged(self):
         self.spinBox_2.setValue(self.horizontalSlider_2.value())
-
     def spinBox1ValueChanged(self):
         self.horizontalSlider.setValue(int((self.spinBox.value() - 1) / 2))
-
     def spinBox2ValueChanged(self):
         self.horizontalSlider_2.setValue(self.spinBox_2.value())
+
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -215,8 +235,6 @@ class TitleView(QWidget):
                                                 "dignissim ex ac erat euismod efficitur. Etiam consectetur nibh a tempor posuere. In sed metus id nibh rhoncus vulputate. "
                                                 "Nam aliquam ante in odio ornare cursus. Donec varius dolor vitae augue condimentum varius. Nunc sed lacinia eros. Ut "
                                                 "ornare mauris a odio gravida, gravida mattis eros bibendum."))
-
-
 
 if __name__ == "__main__":
     import sys

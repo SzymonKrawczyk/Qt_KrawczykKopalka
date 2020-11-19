@@ -16,6 +16,7 @@
 #           18.11.2020 | Michał Kopałka     | Dodanie przechodzenia między oknami
 #           18.11.2020 | Szymon Krawczyk    | Naprawa błędu przy przechodzeniu na wcześniej odwiedzony widok
 #           19.11.2020 | Szymon Krawczyk    | Przekazanie self do GameView
+#           19.11.2020 | Michał Kopałka     | Wywołanie funkcji checkIfNewRecord() po powrocie do TitleView
 #
 
 
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow):
         self.TitleWindow = TitleView()
         self.setCentralWidget(self.TitleWindow)
         self.pushButton.setText("Graj")
-        #self.show()
+        self.show()
 
     def startGameWindow(self):
         self.setWindowTitle("Python game screen")
@@ -73,7 +74,7 @@ class MainWindow(QMainWindow):
         if self.nameOfTheCentralWidget == "TitleView":
             self.startGameWindow()
         elif self.nameOfTheCentralWidget == "GameView":
-            # self.GameWindow.endGame()
+            self.GameWindow.checkIfNewRecord()
             self.startTitleWindow()
 
 
