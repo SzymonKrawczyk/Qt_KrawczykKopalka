@@ -1,6 +1,20 @@
-# Klasa QWidgetu gry
+# Klasa QWidgetu gry Snake
 #
-#   TODO Opis pliku, klas i metod w nim zawieranych
+#   Interface publiczny, czyli jak korzystać z klasy:
+#       Właściwości:
+#           newDirection    - pozwala na zmianę kierunku poruszania się węża, jeżeli nie jest to kierunek przeciwny
+#                             do obecnego. Przyjmuje wartości "N", "E", "W", "S", ""
+#           CPS             - określa ilość operacji / kroków / klatek na sekundę [1; 10].
+#                             Po zmianie należy wywołać newGame()
+#           cellCount       - określa długość boku pola rozgrywki (ilość komórek) [11; 41 | nieparzysta].
+#                             Po zmianie należy wywołać newGame()
+#           powerups        - określa czy ma się pojawiać jedzenie, które po zjedzeniu daje dwukrotne przyspieszenie
+#                             gry. Po zmianie należy wywołać newGame()
+#           closedBox       - określa czy na obrzeżach pola gry mają być ściany. Po zmianie należy wywołać newGame()
+#           randomWall      - określa czy w polu rozgrywki mają być losowe ściany. Po zmianie należy wywołać newGame()
+#
+#       Metody:
+#           newGame()       - rozpoczyna nową grę z obecnymi ustawieniami
 #
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
@@ -34,6 +48,12 @@
 #           18.11.2020 | Szymon Krawczyk    | Usunięcie endGame()
 #           18.11.2020 | Szymon Krawczyk    | Dodanie grania ponownej gry po przegraniu
 #           18.11.2020 | Szymon Krawczyk    | Poprawa generacji losowych ścian
+#           19.11.2020 | Szymon Krawczyk    | Dodanie strzałek jako sterowania alternatywnego
+#           19.11.2020 | Szymon Krawczyk    | Dodanie możliwości powrotu do menu / rozpoczęcia nowej gry po zakończeniu
+#           19.11.2020 | Szymon Krawczyk    | Dodanie możliwości wygrania poprzez zajęcie wężem wszystkich pól poza 2
+#           19.11.2020 | Szymon Krawczyk    | Poprawienie systemu zakańczania gry
+#           19.11.2020 | Szymon Krawczyk    | Dodanie balansu ustawień i wyniku -> trudniej = większy mnożnik punktów
+#           19.11.2020 | Szymon Krawczyk    | Dodanie komentarzy
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -43,21 +63,18 @@
 #       7-ściana
 #
 
-
-import sys
 from random import randrange
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox
+from PyQt5.QtWidgets import QWidget, QMessageBox, QMainWindow
 
 from Snake import Snake
 import keyboard
 
-
-# TODO delete?
+# Stałe kolorów
 NORMAL_HEADCOLOR = QColor(0, 100, 0)
 NORMAL_TAILCOLOR = QColor(0, 128, 0)
 BOOST_TAILCOLOR = QColor(252, 172, 71)
@@ -97,7 +114,7 @@ class GameView(QWidget):
 
     @cellCount.setter
     def cellCount(self, value):
-        if value % 2 == 0 or value < 11 or value > 51:
+        if value % 2 == 0 or value < 11 or value > 41:
             raise ValueError
         self._cellCount = value
 
@@ -134,7 +151,7 @@ class GameView(QWidget):
             raise ValueError
         self._randomWall = value
 
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
 
         # Deklaracja pól i wartości domyślne
@@ -145,22 +162,34 @@ class GameView(QWidget):
         self.closedBox = True
         self.randomWall = True
 
-        self.gameMatrix = []
-        self.paintFlag = True
+        self.gameMatrix = []    # Plansza / obszar gry
+        self.paintFlag = True   # Flaga pomocnicza; jeśli True to rysuje się plansza
 
-        self.Python = Snake()
+        self.Python = Snake()   # Obiekt klasy Snake
+        # Kolory inicjalizowane domyślnie kolorami podstawowymi
         self.snakeTailColor = NORMAL_TAILCOLOR
         self.snakeHeadColor = NORMAL_HEADCOLOR
-        self.gameOver = False
 
-        self.boost = False
-        self.boostTimer = QTimer(self)
-        self.boostTimer.timeout.connect(self.stopBoost)
         self.score = 0
+        self.gameOver = False   # Pole z informacją czy gracz nadal żyje
 
-        self.timer = QTimer(self)
+        self.boost = False                  # Pole z informacją czy gracz ma boosta / powerupa
+        self.boostTimer = QTimer(self)      # Pomocniczy QTimer odliczający czas do wyłączenia boosta
+        self.boostTimer.timeout.connect(self.manageBoost)
+
+        self.timer = QTimer(self)   # Główny QTimer który wywołuje każdy kolejny krok gry (silnik)
         self.timer.timeout.connect(self.onTimeout)
-        self.timerHelp = False
+        self.timerHelp = False      # Ponieważ (na potrzeby implementacji boosta) wykonuje się dwukrotna ilość kroków
+                                    # na sekundę, to pole pomocnicze redukuje ilość kroków o połowę
+                                    # (gdy jest aktywny boost, wykonują się wszystkie kroki niezależnie
+                                    # od wartości tego pola)
+
+        # TODO Działa, ale czy poprawne? Więcej informacji przy metodzie gameOverWindow
+        if not isinstance(parent, QMainWindow):
+            raise ValueError
+        self.parentW = parent
+
+        self.MAX_SNAKE_LEN = 0
 
         # UI wygenerowane automatycznie
         self.width = 600
@@ -218,6 +247,7 @@ class GameView(QWidget):
         self.verticalLayout_2.addWidget(self.scoreCurrent)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
 
+        # Dynamiczna zmiana wielkości komórek, planszy i wyśrodkowania jej w zależności od ilości komórek
         self.cellWidth = int((self.width-100) / self.cellCount)
         self.myCanvasSize = int(self.cellWidth * self.cellCount)
         self.myCanvasPaddingX = (self.width-self.myCanvasSize)/2
@@ -252,8 +282,9 @@ class GameView(QWidget):
 
         self.label_3.setText("HIGH SCORE")
         self.label_4.setText("SCORE")
-        self.scoreHigh.setText("999999")
-        self.scoreCurrent.setText("000009")
+        self.highscore = 7  # TODO pobieranie highscore z pliku
+        self.scoreHigh.setText(self.intToScoreStr(self.highscore))
+        self.scoreCurrent.setText(self.intToScoreStr(self.score))
         self.arrRight.setText(">")
         self.arrUp.setText("^")
         self.arrLeft.setText("<")
@@ -261,7 +292,6 @@ class GameView(QWidget):
 
     def newGame(self):
         self.timer.stop()
-
         self.gameOver = False
 
         # Poprawa wielkości rysowania przy zmianie długości boku
@@ -275,6 +305,10 @@ class GameView(QWidget):
         self.Python.tail = []
         self.Python.head.x = int(self.cellCount/2)
         self.Python.head.y = int(self.cellCount/2)
+
+        # self.highscore = 999999  # TODO pobieranie highscore z pliku
+        self.scoreHigh.setText(self.intToScoreStr(self.highscore))
+        self.scoreCurrent.setText(self.intToScoreStr(self.score))
 
         self.gameMatrix = []
         for i in range(self.cellCount):
@@ -290,7 +324,6 @@ class GameView(QWidget):
                 self.gameMatrix[i][self.cellCount-1] = 7
                 self.gameMatrix[self.cellCount-1][i] = 7
 
-        # TODO dopracować?
         if self.randomWall:
             randY1 = randrange(2, int(self.cellCount/2-1))
             randY2 = randrange(int(self.cellCount/2)+2, self.cellCount-2)
@@ -298,68 +331,108 @@ class GameView(QWidget):
                 self.gameMatrix[i+2][randY1] = 7
                 self.gameMatrix[i+2][randY2] = 7
 
-        self.spawnFoodNormal()
-        if self.powerups:
-            # self.spawnFoodSuper()
-            self.stopBoost()
-
         self.gameOver = False
         self.timer.start(int(1000/(self.CPS*2)))
 
+        # Obliczanie maksymalnej długości węża
+        self.MAX_SNAKE_LEN = 0
+        for i in self.gameMatrix:
+            for j in i:
+                if j == 0:
+                    self.MAX_SNAKE_LEN += 1
+        # print(self.MAX_SNAKE_LEN)
+
+        self.spawnFood(1)
+        if self.powerups:
+            self.manageBoost()  # m.in. dodaje super jedzenie na plaszę
+
+        # Obsługa klawiatury
         keyboard.on_press_key("a", lambda _: self.arrLeftClicked())
+        keyboard.on_press_key("left arrow", lambda _: self.arrLeftClicked())
+
         keyboard.on_press_key("d", lambda _: self.arrRightClicked())
+        keyboard.on_press_key("right arrow", lambda _: self.arrRightClicked())
+
         keyboard.on_press_key("w", lambda _: self.arrUpClicked())
+        keyboard.on_press_key("up arrow", lambda _: self.arrUpClicked())
+
         keyboard.on_press_key("s", lambda _: self.arrDownClicked())
+        keyboard.on_press_key("down arrow", lambda _: self.arrDownClicked())
 
-    # def endGame(self):
-    #     self.timer.stop()
-    #     self.boostTimer.stop()
-    #     keyboard.unhook_all()
-
+    # Silnik
     def onTimeout(self):
+        # Wykonuje się co drugie wywołanie (timerHelp) lub co każde, jeżeli jest boost
         if self.timerHelp or self.boost:
+
             self.paintFlag = True
-            print(self.gameOver)
+
             self.gameOver = self.checkCollision()
+            foodCheck = self.checkFoodCollision()
             if not self.gameOver:
-                self.moveSnake(self.checkFoodCollision())
+                self.moveSnake(foodCheck)
+            else:
+                self.gameOverHandler()
+
             self.update()
+
         self.timerHelp = not self.timerHelp
 
+    # Sprawdzanie kolizji
     def checkCollision(self):
         if self.gameMatrix[self.Python.head.x][self.Python.head.y] == 7:
-            self.gameOverWindow()
-            # self.endGame()
             return True
 
         for i in range(len(self.Python.tail)):
             if self.Python.tail[i].x == self.Python.head.x and self.Python.tail[i].y == self.Python.head.y:
-                self.gameOverWindow()
-                # self.endGame()
                 return True
 
         return False
 
     def checkFoodCollision(self):
         temp = self.gameMatrix[self.Python.head.x][self.Python.head.y]
+        scoreMultiplayer = 1 * (float(self.CPS) / 10)
+        if self.CPS >= 5:
+            scoreMultiplayer += (float(self.CPS) / 10) * 2
+        if self.randomWall:
+            scoreMultiplayer += 1
+        if self.closedBox:
+            scoreMultiplayer += 1
         if temp == 1:
-            self.spawnFoodNormal()
-            self.score += 1
+            self.spawnFood(1)
+            self.score += 1 * scoreMultiplayer
+            self.scoreCurrent.setText(self.intToScoreStr(self.score))
         elif temp == 2:
-            self.score += 5
+            self.score += 5 * scoreMultiplayer
+            self.scoreCurrent.setText(self.intToScoreStr(self.score))
+
         self.gameMatrix[self.Python.head.x][self.Python.head.y] = 0
         return temp
 
-    def spawnFoodNormal(self):
-        tempX, tempY = self.findFreePosition()
-        self.gameMatrix[tempX][tempY] = 1
+    # Dekoracja liczby
+    @staticmethod
+    def intToScoreStr(value):
+        STR_SCORE_LEN = 10
+        valueT = int(value)
+        lenT = len(str(valueT))
+        return "0" * (STR_SCORE_LEN - lenT) + str(valueT)
 
-    def spawnFoodSuper(self):
-        tempX, tempY = self.findFreePosition()
-        self.gameMatrix[tempX][tempY] = 2
+    def spawnFood(self, value):
+        try:
+            tempX, tempY = self.findFreePosition()
+            self.gameMatrix[tempX][tempY] = int(value)
+        except InterruptedError:  # Wygrana
+            self.gameOver = True
 
+    # Szukanie wolnej pozycji dla jedzenia
     def findFreePosition(self):
+        # Sprawdzanie czy wygrana
+        tempCounter = self.MAX_SNAKE_LEN - (len(self.Python.tail) + 1 + 2)
+        # print("Wolne: " + str(tempCounter))
+        if tempCounter <= 1:
+            raise InterruptedError
+
         while True:
+            # print("los")
             freeX = randrange(0, self.cellCount-1)
             freeY = randrange(0, self.cellCount-1)
             error = False
@@ -377,6 +450,7 @@ class GameView(QWidget):
             if not error:
                 return freeX, freeY
 
+    # Poruszanie się węża
     def moveSnake(self, situation):
 
         # Zakaz pójścia węża 'w tył'
@@ -398,21 +472,22 @@ class GameView(QWidget):
         if not self.closedBox:
             self.movementCorrection()
 
+    # Włącza boost i odliczanie do jego wyłączenia; zmiana koloru węża
     def startBoost(self, duration):
-
         self.snakeTailColor = BOOST_TAILCOLOR
         self.snakeHeadColor = BOOST_HEADCOLOR
         self.boost = True
         self.boostTimer.start(duration)
 
-    def stopBoost(self):
-
+    # Wyłącza boost i odliczanie, spawnuje super jedzenie; zmiana koloru węża
+    def manageBoost(self):
         self.boostTimer.stop()
         self.snakeTailColor = NORMAL_TAILCOLOR
         self.snakeHeadColor = NORMAL_HEADCOLOR
         self.boost = False
-        self.spawnFoodSuper()
+        self.spawnFood(2)
 
+    # "Teleportacja" na przeciwną stroną planszy, jeżeli wąż wyjdzie poza
     def movementCorrection(self):
         if self.Python.head.x < 0:
             self.Python.head.x = self.cellCount-1
@@ -423,9 +498,10 @@ class GameView(QWidget):
         elif self.Python.head.y > self.cellCount-1:
             self.Python.head.y = 0
 
+    # Rysowanie
     def paintEvent(self, e):
         if self.paintFlag:
-            print("paint")
+            # print("paint")
 
             # Kolory TODO self?
             backgroundColor = QColor(153, 204, 255)
@@ -500,9 +576,25 @@ class GameView(QWidget):
     def arrDownClicked(self):
         self.newDirection = "S"
 
-    def gameOverWindow(self):
-        popUpWindow = QMessageBox()
-        popUpWindow.setWindowTitle("Koniec gry")
-        popUpWindow.setText("Przegrałeś")
-        x = popUpWindow.exec_()
-        self.newGame()
+    def gameOverHandler(self):
+        newHighScore = False
+        if self.score > self.highscore:
+            self.highscore = self.score
+            newHighScore = True
+        # TODO zapis high score jeżeli score > highscore
+        self.gameOverWindow(newHighScore)
+
+    # TODO Działa, jednak czy jest to poprawne rozwiązanie? Czy GameView powinien wiedzieć jakie metody
+    #  ma klasa go wykorzystująca?
+    #  Do usunięcia? Do zmiany?
+    def gameOverWindow(self, value):
+        strT = "\n"
+        if value:
+            strT = "\nNowy najlepszy wynik!\n"
+        choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "Powrót do menu?"
+                                         , QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+        if choice == QMessageBox.Yes:
+            self.parentW.startTitleWindow()  # TODO Poprawne w myśl dobrego programowania?
+        else:
+            self.newGame()

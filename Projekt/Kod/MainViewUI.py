@@ -15,6 +15,7 @@
 #           16.11.2020 | Szymon Krawczyk    | Dodanie tworzenia obiektów widoków w konstruktorze
 #           18.11.2020 | Michał Kopałka     | Dodanie przechodzenia między oknami
 #           18.11.2020 | Szymon Krawczyk    | Naprawa błędu przy przechodzeniu na wcześniej odwiedzony widok
+#           19.11.2020 | Szymon Krawczyk    | Przekazanie self do GameView
 #
 
 
@@ -31,7 +32,7 @@ from TitleView import TitleView
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.GameWindow = GameView()
+        self.GameWindow = GameView(self)
         self.TitleWindow = TitleView()
         self.setGeometry(50, 50, 600, 800)
         self.setFixedSize(600, 900)
@@ -57,7 +58,7 @@ class MainWindow(QMainWindow):
     def startGameWindow(self):
         self.setWindowTitle("Python game screen")
         self.nameOfTheCentralWidget = "GameView"
-        self.GameWindow = GameView()
+        self.GameWindow = GameView(self)
         self.setCentralWidget(self.GameWindow)
         self.GameWindow.CPS = self.TitleWindow.CPS
         self.GameWindow.cellCount = self.TitleWindow.cellCount
