@@ -1,5 +1,8 @@
 # Klasa QWidgetu widoku ekranu tytułowego z ustawieniami
 #
+#  Klasa slużąca za interface do inicjacji wartości parametrów początkowych w GameView,
+#  Umożliwia odczyt (i tylko odczyt) poarametrów ze sliderów oraz checkBoxów, slidery są ograniczone na
+#  sztywno zgodnie z wymaganiami stawianymi przez GameView
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #

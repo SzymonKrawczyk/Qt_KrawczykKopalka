@@ -56,6 +56,9 @@
 #           19.11.2020 | Szymon Krawczyk    | Dodanie komentarzy
 #           19.11.2020 | Michał Kopałka     | Dodanie odczytu i zapisu highscore z pliku
 #           19.11.2020 | Michał Kopałka     | Przeniesienie sprawdzania i zapisu wyniku do osobnej funkcji
+#           20.11.2020 | Michał Kopałka     | Zmiana sposobu rysowania super jedzenia
+#           20.11.2020 | Michał Kopałka     | Dodanie gradientu do ogona
+#           20.11.2020 | Michał Kopałka     | Dodanie przekazywania metody powrotu do menu jako parametr konstruktora
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -68,9 +71,9 @@
 from random import randrange
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QPoint
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPolygon
 from PyQt5.QtWidgets import QWidget, QMessageBox, QMainWindow
 
 from Snake import Snake
@@ -153,7 +156,7 @@ class GameView(QWidget):
             raise ValueError
         self._randomWall = value
 
-    def __init__(self, parent):
+    def __init__(self, exitMethod = None):
         super().__init__()
 
         # Deklaracja pól i wartości domyślne
@@ -187,9 +190,10 @@ class GameView(QWidget):
                                     # od wartości tego pola)
 
         # TODO Działa, ale czy poprawne? Więcej informacji przy metodzie gameOverWindow
-        if not isinstance(parent, QMainWindow):
-            raise ValueError
-        self.parentW = parent
+        #if not isinstance(parent, QMainWindow):
+        #    raise ValueError
+        #self.parentW = parent
+        self.exitMetod = exitMethod
 
         self.MAX_SNAKE_LEN = 0
 
@@ -522,6 +526,7 @@ class GameView(QWidget):
             foodNormalColor = QColor(255, 0, 0)
             foodSuperColor = QColor(255, 165, 0)
 
+
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
             x0 = int(self.myCanvasPaddingX)
@@ -554,26 +559,49 @@ class GameView(QWidget):
 
                     elif self.gameMatrix[i][j] == 2:
                         painter.setBrush(foodSuperColor)
+
+                        #TODO: usunąć jeden ze sposobów rysowania (teraz rąb zasłania kółko)
                         painter.drawEllipse(
                             int(x0 + 3 + (i * self.cellWidth))
                             , int(y0 + 3 + (j * self.cellWidth))
                             , int(self.cellWidth)-6
                             , int(self.cellWidth)-6)
 
+                        points = [
+                            QPoint(x0+(i*self.cellWidth), y0+((j+0.5)*self.cellWidth)),
+                            QPoint(x0+((i+0.5)*self.cellWidth), y0+((j+1.0)*self.cellWidth)),
+                            QPoint(x0+((i+1.0)*self.cellWidth), y0+((j+0.5)*self.cellWidth)),
+                            QPoint(x0+((i+0.5)*self.cellWidth), y0+(j*self.cellWidth))
+                        ]
+                        painter.drawPolygon(QPolygon(points))
+
             # Rysowanie węża
             painter.setBrush(self.snakeTailColor)
             for i in range(len(self.Python.tail)):
-                painter.drawRect(int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth)),
-                                 int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth)),
-                                 int(self.cellWidth)-4,
-                                 int(self.cellWidth)-4)
+
+                if self.snakeTailColor == BOOST_TAILCOLOR:
+                    tailColor = self.snakeTailColor
+                else:
+                    tailColor = self.snakeTailColor
+                    tailColor.setRed(i * 5)
+                    tailColor.setGreen(128-(i*2))
+                    tailColor.setBlue(i * 5)
+                painter.setBrush(tailColor)
+
+                painter.drawRect(
+                    int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth)),
+                    int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth)),
+                    int(self.cellWidth)-4,
+                    int(self.cellWidth)-4
+                    )
 
             painter.setBrush(self.snakeHeadColor)
             painter.drawRect(
-                int(x0+(self.Python.head.x * self.cellWidth))
-                , int(y0+(self.Python.head.y * self.cellWidth))
-                , int(self.cellWidth)
-                , int(self.cellWidth))
+                int(x0+1+(self.Python.head.x * self.cellWidth))
+                , int(y0+1+(self.Python.head.y * self.cellWidth))
+                , int(self.cellWidth)-2
+                , int(self.cellWidth)-2
+            )
 
         self.paintFlag = False
 
@@ -614,10 +642,16 @@ class GameView(QWidget):
         strT = "\n"
         if value:
             strT = "\nNowy najlepszy wynik!\n"
-        choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "Powrót do menu?"
-                                         , QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-        if choice == QMessageBox.Yes:
-            self.parentW.startTitleWindow()  # TODO Poprawne w myśl dobrego programowania?
+        if self.exitMetod != None:
+            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "Powrót do menu?"
+                                             , QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if choice == QMessageBox.Yes:
+                self.exitMetod()  # TODO Poprawne w myśl dobrego programowania?
+            else:
+                self.newGame()
         else:
-            self.newGame()
+            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "!"
+                                             ,QMessageBox.Ok, QMessageBox.Ok)
+            if choice == QMessageBox.Ok:
+                self.newGame()
