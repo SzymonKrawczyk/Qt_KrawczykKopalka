@@ -10,6 +10,7 @@
 #           14.11.2020 | Szymon Krawczyk    | Usunięcie testowania działania
 #           14.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego w poruszaniu ogonem gdy jest pusty
 #           16.11.2020 | Szymon Krawczyk    | Usunięcie właściwości przechowujących kolory
+#           20.11.2020 | Szymon Krawczyk    | Usunięcie niepotrzebnego, zakomentowanego kodu
 #
 from PyQt5.QtGui import QColor
 
@@ -54,35 +55,11 @@ class Snake:
             raise ValueError
         self._direction = value
 
-    # # Kolor głowy węża
-    # @property
-    # def headColor(self):
-    #     return self._headColor
-    #
-    # @headColor.setter
-    # def headColor(self, value):
-    #     if not isinstance(value, QColor):
-    #         raise ValueError
-    #     self._headColor = value
-    #
-    # # Kolor ogonu węża
-    # @property
-    # def tailColor(self):
-    #     return self._tailColor
-    #
-    # @tailColor.setter
-    # def tailColor(self, value):
-    #     if not isinstance(value, QColor):
-    #         raise ValueError
-    #     self._tailColor = value
-
     # Metody
     def __init__(self):
         self.head = Coords()
         self.tail = []
         self.direction = ""
-        # self.headColor = QColor(0, 100, 0)
-        # self.tailColor = QColor(0, 128, 0)
 
     # True, jeżeli wąż "się zjadł"; w pozostałych przypadkach False
     def checkTailCollision(self):

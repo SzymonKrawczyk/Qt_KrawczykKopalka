@@ -1,6 +1,12 @@
 # Klasa QWidgetu gry Snake
 #
 #   Interface publiczny, czyli jak korzystać z klasy:
+#
+#       Konstruktor:
+#           Klasa przyjmuje jeden opcjonalny argument w konstruktorze, jest to metoda, która może zostać wywołana
+#           przez użytkownika po zakończeniu gry
+#           (Zapytanie "Powrót?" - opcje tak / nie [tak = metoda z argumentu konstruktora; nie = nowa gra])
+#
 #       Właściwości:
 #           newDirection    - pozwala na zmianę kierunku poruszania się węża, jeżeli nie jest to kierunek przeciwny
 #                             do obecnego. Przyjmuje wartości "N", "E", "W", "S", ""
@@ -59,6 +65,10 @@
 #           20.11.2020 | Michał Kopałka     | Zmiana sposobu rysowania super jedzenia
 #           20.11.2020 | Michał Kopałka     | Dodanie gradientu do ogona
 #           20.11.2020 | Michał Kopałka     | Dodanie przekazywania metody powrotu do menu jako parametr konstruktora
+#           20.11.2020 | Szymon Krawczyk    | Dodanie komentarzy
+#           20.11.2020 | Szymon Krawczyk    | Zmiana nazwy metody do zapisu wyniku do pliku
+#           20.11.2020 | Szymon Krawczyk    | Zmiana treści wyskakującego okna po zakończeniu gry
+#           20.11.2020 | Szymon Krawczyk    | Zostawienie jednego sposobu rysowania super jedzenia (romb)
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -156,7 +166,7 @@ class GameView(QWidget):
             raise ValueError
         self._randomWall = value
 
-    def __init__(self, exitMethod = None):
+    def __init__(self, exitMethod=None):
         super().__init__()
 
         # Deklaracja pól i wartości domyślne
@@ -526,7 +536,6 @@ class GameView(QWidget):
             foodNormalColor = QColor(255, 0, 0)
             foodSuperColor = QColor(255, 165, 0)
 
-
             # Dla uproszczenia i skrócenia dalszej części
             width = self.myCanvasSize
             x0 = int(self.myCanvasPaddingX)
@@ -560,12 +569,11 @@ class GameView(QWidget):
                     elif self.gameMatrix[i][j] == 2:
                         painter.setBrush(foodSuperColor)
 
-                        #TODO: usunąć jeden ze sposobów rysowania (teraz rąb zasłania kółko)
-                        painter.drawEllipse(
-                            int(x0 + 3 + (i * self.cellWidth))
-                            , int(y0 + 3 + (j * self.cellWidth))
-                            , int(self.cellWidth)-6
-                            , int(self.cellWidth)-6)
+                        # painter.drawEllipse(
+                        #     int(x0 + 3 + (i * self.cellWidth))
+                        #     , int(y0 + 3 + (j * self.cellWidth))
+                        #     , int(self.cellWidth)-6
+                        #     , int(self.cellWidth)-6)
 
                         points = [
                             QPoint(x0+(i*self.cellWidth), y0+((j+0.5)*self.cellWidth)),
@@ -576,6 +584,7 @@ class GameView(QWidget):
                         painter.drawPolygon(QPolygon(points))
 
             # Rysowanie węża
+            # Ogon
             painter.setBrush(self.snakeTailColor)
             for i in range(len(self.Python.tail)):
 
@@ -589,12 +598,13 @@ class GameView(QWidget):
                 painter.setBrush(tailColor)
 
                 painter.drawRect(
-                    int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth)),
-                    int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth)),
-                    int(self.cellWidth)-4,
-                    int(self.cellWidth)-4
+                    int(x0 + 2 + (self.Python.tail[i].x * self.cellWidth))
+                    , int(y0 + 2 + (self.Python.tail[i].y * self.cellWidth))
+                    , int(self.cellWidth)-4
+                    , int(self.cellWidth)-4
                     )
 
+            # Głowa
             painter.setBrush(self.snakeHeadColor)
             painter.drawRect(
                 int(x0+1+(self.Python.head.x * self.cellWidth))
@@ -621,11 +631,11 @@ class GameView(QWidget):
         newHighScore = False
         if self.score > self.highscore:
             newHighScore = True
+            self.saveScore()
 
-        self.checkIfNewRecord()
         self.gameOverWindow(newHighScore)
 
-    def checkIfNewRecord(self):
+    def saveScore(self):
         if self.score > self.highscore:
             self.highscore = self.score
             try:
@@ -635,23 +645,21 @@ class GameView(QWidget):
             except IOError:
                 print("highscore.ini file not found")
 
-    # TODO Działa, jednak czy jest to poprawne rozwiązanie? Czy GameView powinien wiedzieć jakie metody
-    #  ma klasa go wykorzystująca?
-    #  Do usunięcia? Do zmiany?
     def gameOverWindow(self, value):
         strT = "\n"
         if value:
             strT = "\nNowy najlepszy wynik!\n"
 
-        if self.exitMetod != None:
-            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "Powrót do menu?"
+        # Jeśli do konstruktora przekazaliśmy metodę wyjścia, to ją można wykonać
+        if self.exitMetod is not None:
+            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "Powrót?"
                                              , QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if choice == QMessageBox.Yes:
-                self.exitMetod()  # TODO Poprawne w myśl dobrego programowania?
+                self.exitMetod()
             else:
                 self.newGame()
         else:
-            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT + "!"
-                                             ,QMessageBox.Ok, QMessageBox.Ok)
+            choice = QMessageBox.information(self, "Koniec", "Wynik: " + str(int(self.score)) + strT
+                                             , QMessageBox.Ok, QMessageBox.Ok)
             if choice == QMessageBox.Ok:
                 self.newGame()

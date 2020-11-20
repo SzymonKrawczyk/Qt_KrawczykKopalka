@@ -1,8 +1,8 @@
 # Klasa QWidgetu widoku ekranu tytułowego z ustawieniami
 #
-#  Klasa slużąca za interface do inicjacji wartości parametrów początkowych w GameView,
-#  Umożliwia odczyt (i tylko odczyt) poarametrów ze sliderów oraz checkBoxów, slidery są ograniczone na
-#  sztywno zgodnie z wymaganiami stawianymi przez GameView
+#  Klasa slużąca za interface do ustawienia wartości parametrów w GameView,
+#  umożliwia odczyt (i tylko odczyt) parametrów ze sliderów oraz checkBoxów, slidery są ograniczone
+#  zgodnie z wymaganiami stawianymi przez GameView
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
@@ -18,9 +18,12 @@
 #           16.11.2020 | Szymon Krawczyk    | Poprawa komentarzy
 #           17.11.2020 | Szymon Krawczyk    | Zmiana wartości minimalnej wielkości planszy w celu uniknięcia błędu
 #           18.11.2020 | Michał Kopałka     | Zmiana UI - dodanie spinBox przy każdym ze sliderów
-#           18.11.2020 | Michał Kopałka     | powiązanie wartości sliderów z spinBox
+#           18.11.2020 | Michał Kopałka     | Powiązanie wartości sliderów ze spinBox
+#           20.11.2020 | Michał Kopałka     | Dodanie komentarzy
+#           20.11.2020 | Szymon Krawczyk    | Poprawa komentarzy
+#           20.11.2020 | Szymon Krawczyk    | Usunięcie testowania
+#           20.11.2020 | Szymon Krawczyk    | Stworzenie prostej instrukcji gry
 #
-#         TODO: zrobienie porządnej instrukcji ( ale lorem ipsum też spoczko )
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -58,7 +61,6 @@ class TitleView(QWidget):
         super().__init__()
 
         # UI wygenerowane automatycznie
-
         self.setObjectName("Form")
         self.resize(600, 800)
         self.setMinimumSize(QtCore.QSize(600, 800))
@@ -74,7 +76,6 @@ class TitleView(QWidget):
         self.verticalLayout.setSpacing(10)
         self.verticalLayout.setObjectName("verticalLayout")
 
-
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.checkBox_2 = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -84,7 +85,6 @@ class TitleView(QWidget):
         self.checkBox_2.setObjectName("checkBox_2")
         self.horizontalLayout_3.addWidget(self.checkBox_2)
         self.verticalLayout.addLayout(self.horizontalLayout_3)
-
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
@@ -96,7 +96,6 @@ class TitleView(QWidget):
         self.horizontalLayout_4.addWidget(self.checkBox)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
-
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.checkBox_3 = QtWidgets.QCheckBox(self.verticalLayoutWidget)
@@ -106,7 +105,6 @@ class TitleView(QWidget):
         self.checkBox_3.setObjectName("checkBox_3")
         self.horizontalLayout_5.addWidget(self.checkBox_3)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
-
 
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_6.setContentsMargins(20, -1, 20, -1)
@@ -146,7 +144,6 @@ class TitleView(QWidget):
         self.horizontalLayout_6.setStretch(2, 4)
         self.verticalLayout.addLayout(self.horizontalLayout_6)
 
-
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setContentsMargins(20, -1, 20, -1)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
@@ -182,7 +179,6 @@ class TitleView(QWidget):
         self.horizontalLayout_7.setStretch(2, 4)
         self.verticalLayout.addLayout(self.horizontalLayout_7)
 
-
         self.label = QtWidgets.QLabel(self)
         self.label.setGeometry(QtCore.QRect(40, 30, 519, 49))
         self.label.setMaximumSize(QtCore.QSize(16777215, 100))
@@ -194,7 +190,6 @@ class TitleView(QWidget):
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
 
-
         self.label_2 = QtWidgets.QLabel(self)
         self.label_2.setGeometry(QtCore.QRect(40, 100, 521, 221))
         self.label_2.setObjectName("label_2")
@@ -203,7 +198,7 @@ class TitleView(QWidget):
         self.retranslateUi(self)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        # zablokowałem możliwość wpisania np 12 w pole z długością boku
+        # zablokowana możliwość wpisania np 12 w pole z długością boku
         self.spinBox.lineEdit().setReadOnly(True)
         self.spinBox_2.lineEdit().setReadOnly(True)
 
@@ -212,17 +207,18 @@ class TitleView(QWidget):
         self.spinBox.valueChanged.connect(self.spinBox1ValueChanged)
         self.spinBox_2.valueChanged.connect(self.spinBox2ValueChanged)
 
-
-    #funkcje zapewniające integralność sliderów ze spinboxami
+    # funkcje zapewniające integralność sliderów ze spinboxami
     def slider1ValueChanged(self):
         self.spinBox.setValue((self.horizontalSlider.value() * 2) + 1)
+
     def slider2ValueChanged(self):
         self.spinBox_2.setValue(self.horizontalSlider_2.value())
+
     def spinBox1ValueChanged(self):
         self.horizontalSlider.setValue(int((self.spinBox.value() - 1) / 2))
+
     def spinBox2ValueChanged(self):
         self.horizontalSlider_2.setValue(self.spinBox_2.value())
-
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
@@ -230,18 +226,19 @@ class TitleView(QWidget):
         self.checkBox_2.setText(_translate("Form", "Zamknięty obszar gry"))
         self.checkBox.setText(_translate("Form", "Losowe ściany - przeszkody"))
         self.checkBox_3.setText(_translate("Form", "Super-food"))
-        self.label_4.setText(_translate("Form", "długość boku planszy "))
-        self.label_3.setText(_translate("Form", "Szybkość rozgrywki"))
+        self.label_4.setText(_translate("Form", "Długość boku planszy "))
+        self.label_3.setText(_translate("Form", "Szybkość rozgrywki (klatki / s)"))
         self.label.setText(_translate("Form", "(PYTHON)^2"))
-        self.label_2.setText(_translate("Form", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam mollis lacus id mi vulputate suscipit. Vestibulum eu odio est. "
-                                                "In convallis augue vitae nulla condimentum, non pharetra orci dictum. Nullam vehicula ligula id eros mattis lobortis. Nulla "
-                                                "dignissim ex ac erat euismod efficitur. Etiam consectetur nibh a tempor posuere. In sed metus id nibh rhoncus vulputate. "
-                                                "Nam aliquam ante in odio ornare cursus. Donec varius dolor vitae augue condimentum varius. Nunc sed lacinia eros. Ut "
-                                                "ornare mauris a odio gravida, gravida mattis eros bibendum."))
-
-if __name__ == "__main__":
-    import sys
-    app = QApplication(sys.argv)
-    interface = TitleView()
-    interface.show()
-    sys.exit(app.exec_())
+        tempStr = "Gra Snake zrealizowana w Python"\
+                  + "\nZbieraj jedzenie w celu zdobywania punktów, jednak uważaj, ponieważ z każdym kolejnym " \
+                  + "posiłkiem wąż robi się coraz dłuższy!" \
+                    "\nGra kończy się, gdy wąż spróbuje zjeść siebie lub ścianę"\
+                  + "\n"\
+                    "\nCzerwone koła = zwykłe jedzenie.."\
+                    "\nZłote romby = jedzenie warte 5x ilośc punktów i dajace przyspieszenie na 10s!"\
+                  + "\n"\
+                  + "\nIm trudniejsza rozgrywka (ściany, szybkość), tym większy mnożnik punktów!"\
+                  + "\nSterowanie: przyciski na ekranie / WSAD / Strzałki"\
+                  + "\n"\
+                  + "\nDostosuj ustawienia gry do swoich umiejętności"
+        self.label_2.setText(_translate("Form", tempStr))
