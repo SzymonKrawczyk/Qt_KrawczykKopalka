@@ -3,7 +3,7 @@
 #   Interface publiczny, czyli jak korzystać z klasy:
 #
 #       Konstruktor:
-#           Klasa przyjmuje jeden opcjonalny argument w konstruktorze, jest to metoda, która może zostać wywołana
+#           Klasa przyjmuje jeden opcjonalny argument w konstruktorze: jest to metoda, która może zostać wywołana
 #           przez użytkownika po zakończeniu gry
 #           (Zapytanie "Powrót?" - opcje tak / nie [tak = metoda z argumentu konstruktora; nie = nowa gra])
 #
@@ -30,7 +30,6 @@
 #   Form implementation generated from reading ui file 'gameView2.ui'
 #
 #   Created by: PyQt5 UI code generator 5.15.1
-#
 #
 #           11.11.2020 | Szymon Krawczyk    | Utworzenie
 #           12.11.2020 | Szymon Krawczyk    | Rysowanie v1:
@@ -69,6 +68,9 @@
 #           20.11.2020 | Szymon Krawczyk    | Zmiana nazwy metody do zapisu wyniku do pliku
 #           20.11.2020 | Szymon Krawczyk    | Zmiana treści wyskakującego okna po zakończeniu gry
 #           20.11.2020 | Szymon Krawczyk    | Zostawienie jednego sposobu rysowania super jedzenia (romb)
+#           25.11.2020 | Szymon Krawczyk    | Refaktoryzacja kodu - zmiana metod na zmianę kierunku w jedną i
+#                                              połączenie przycisków / klawiatury z lambdą w celu wywołania tej metody
+#           29.11.2020 | Szymon Krawczyk    | Dodanie / poprawa / usunięcie komentarzy
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -181,6 +183,7 @@ class GameView(QWidget):
         self.paintFlag = True   # Flaga pomocnicza; jeśli True to rysuje się plansza
 
         self.Python = Snake()   # Obiekt klasy Snake
+
         # Kolory inicjalizowane domyślnie kolorami podstawowymi
         self.snakeTailColor = NORMAL_TAILCOLOR
         self.snakeHeadColor = NORMAL_HEADCOLOR
@@ -199,10 +202,6 @@ class GameView(QWidget):
                                     # (gdy jest aktywny boost, wykonują się wszystkie kroki niezależnie
                                     # od wartości tego pola)
 
-        # TODO Działa, ale czy poprawne? Więcej informacji przy metodzie gameOverWindow
-        #if not isinstance(parent, QMainWindow):
-        #    raise ValueError
-        #self.parentW = parent
         self.exitMetod = exitMethod
 
         self.MAX_SNAKE_LEN = 0
@@ -278,27 +277,27 @@ class GameView(QWidget):
 
         self.arrRight = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrRight.setObjectName("arrRight")
-        self.arrRight.clicked.connect(self.arrRightClicked)
+        self.arrRight.clicked.connect(lambda _: self.arrClicked("E"))
         self.gridLayout.addWidget(self.arrRight, 1, 2, 1, 1)
 
         self.arrUp = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrUp.setObjectName("arrUp")
-        self.arrUp.clicked.connect(self.arrUpClicked)
+        self.arrUp.clicked.connect(lambda _: self.arrClicked("N"))
         self.gridLayout.addWidget(self.arrUp, 0, 1, 1, 1)
 
         self.arrLeft = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrLeft.setObjectName("arrLeft")
-        self.arrLeft.clicked.connect(self.arrLeftClicked)
+        self.arrLeft.clicked.connect(lambda _: self.arrClicked("W"))
         self.gridLayout.addWidget(self.arrLeft, 1, 0, 1, 1)
 
         self.arrDown = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrDown.setObjectName("arrDown")
-        self.arrDown.clicked.connect(self.arrDownClicked)
+        self.arrDown.clicked.connect(lambda _: self.arrClicked("S"))
         self.gridLayout.addWidget(self.arrDown, 2, 1, 1, 1)
 
         self.label_3.setText("HIGH SCORE")
         self.label_4.setText("SCORE")
-        self.highscore = 7  # TODO pobieranie highscore z pliku
+        self.highscore = 0
         self.scoreHigh.setText(self.intToScoreStr(self.highscore))
         self.scoreCurrent.setText(self.intToScoreStr(self.score))
         self.arrRight.setText(">")
@@ -367,24 +366,23 @@ class GameView(QWidget):
             for j in i:
                 if j == 0:
                     self.MAX_SNAKE_LEN += 1
-        # print(self.MAX_SNAKE_LEN)
 
         self.spawnFood(1)
         if self.powerups:
             self.manageBoost()  # m.in. dodaje super jedzenie na plaszę
 
         # Obsługa klawiatury
-        keyboard.on_press_key("a", lambda _: self.arrLeftClicked())
-        keyboard.on_press_key("left arrow", lambda _: self.arrLeftClicked())
+        keyboard.on_press_key("a", lambda _: self.arrClicked("W"))
+        keyboard.on_press_key("left arrow", lambda _: self.arrClicked("W"))
 
-        keyboard.on_press_key("d", lambda _: self.arrRightClicked())
-        keyboard.on_press_key("right arrow", lambda _: self.arrRightClicked())
+        keyboard.on_press_key("d", lambda _: self.arrClicked("E"))
+        keyboard.on_press_key("right arrow", lambda _: self.arrClicked("E"))
 
-        keyboard.on_press_key("w", lambda _: self.arrUpClicked())
-        keyboard.on_press_key("up arrow", lambda _: self.arrUpClicked())
+        keyboard.on_press_key("w", lambda _: self.arrClicked("N"))
+        keyboard.on_press_key("up arrow", lambda _: self.arrClicked("N"))
 
-        keyboard.on_press_key("s", lambda _: self.arrDownClicked())
-        keyboard.on_press_key("down arrow", lambda _: self.arrDownClicked())
+        keyboard.on_press_key("s", lambda _: self.arrClicked("S"))
+        keyboard.on_press_key("down arrow", lambda _: self.arrClicked("S"))
 
     # Silnik
     def onTimeout(self):
@@ -454,12 +452,10 @@ class GameView(QWidget):
     def findFreePosition(self):
         # Sprawdzanie czy wygrana
         tempCounter = self.MAX_SNAKE_LEN - (len(self.Python.tail) + 1 + 2)
-        # print("Wolne: " + str(tempCounter))
         if tempCounter <= 1:
             raise InterruptedError
 
         while True:
-            # print("los")
             freeX = randrange(0, self.cellCount-1)
             freeY = randrange(0, self.cellCount-1)
             error = False
@@ -528,9 +524,8 @@ class GameView(QWidget):
     # Rysowanie
     def paintEvent(self, e):
         if self.paintFlag:
-            # print("paint")
 
-            # Kolory TODO self?
+            # Kolory
             backgroundColor = QColor(153, 204, 255)
             wallColor = QColor(0, 0, 0)
             foodNormalColor = QColor(255, 0, 0)
@@ -568,12 +563,6 @@ class GameView(QWidget):
 
                     elif self.gameMatrix[i][j] == 2:
                         painter.setBrush(foodSuperColor)
-
-                        # painter.drawEllipse(
-                        #     int(x0 + 3 + (i * self.cellWidth))
-                        #     , int(y0 + 3 + (j * self.cellWidth))
-                        #     , int(self.cellWidth)-6
-                        #     , int(self.cellWidth)-6)
 
                         points = [
                             QPoint(x0+(i*self.cellWidth), y0+((j+0.5)*self.cellWidth)),
@@ -615,17 +604,8 @@ class GameView(QWidget):
 
         self.paintFlag = False
 
-    def arrRightClicked(self):
-        self.newDirection = "E"
-
-    def arrUpClicked(self):
-        self.newDirection = "N"
-
-    def arrLeftClicked(self):
-        self.newDirection = "W"
-
-    def arrDownClicked(self):
-        self.newDirection = "S"
+    def arrClicked(self, newValue):
+        self.newDirection = newValue
 
     def gameOverHandler(self):
         newHighScore = False

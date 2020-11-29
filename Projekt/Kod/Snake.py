@@ -1,7 +1,24 @@
 # Klasa Snake
 #
 #   Klasa przechowująca informacje o wężu i implementująca poruszanie się węża po macierzy xy
-#   TODO dodać informacje o obsłudze klasy
+#
+#   Interface publiczny, czyli jak korzystać z klasy:
+#
+#       Konstruktor:
+#           Nie przyjmuje argumentów
+#
+#       Właściwości:
+#           head        - obiekt typu Coords
+#           tail        - lista obiektów typu Coords
+#           direction   - przyjmuje wartości "N", "E", "W", "S", "" (opisuje kierunek węża)
+#
+#       Metody:
+#           checkTailCollision()    - True, jeżeli wąż "się zjadł"; w pozostałych przypadkach False
+#           tailMove()              - Ruch 'normalny' ciała węża - ostatnia pozycja ogonu przyjmuje wartość
+#                                      wcześniejszej, dodatkowo poruszanie głową
+#           tailMoveEating()        - Ruch ciała węża po jedzeniu - brak ruchu, dodanie ciała w pozycji głowy,
+#                                      dodatkowo poruszanie głową
+#
 #
 #  Autorzy: Szymon Krawczyk, Michał Kopałka
 #
@@ -11,8 +28,8 @@
 #           14.11.2020 | Szymon Krawczyk    | Poprawa błędu krytycznego w poruszaniu ogonem gdy jest pusty
 #           16.11.2020 | Szymon Krawczyk    | Usunięcie właściwości przechowujących kolory
 #           20.11.2020 | Szymon Krawczyk    | Usunięcie niepotrzebnego, zakomentowanego kodu
+#           29.11.2020 | Szymon Krawczyk    | Dodanie komentarzy
 #
-from PyQt5.QtGui import QColor
 
 from Coords import Coords
 
@@ -70,7 +87,7 @@ class Snake:
                 break
         return error
 
-    # Ruch 'normalny' ciała węża - ostatnia pozycja przyjmuję pozycję wcześniejszej itd + ruch głowy
+    # Ruch 'normalny' ciała węża - ostatnia pozycja przyjmuje pozycję wcześniejszej itd + ruch głowy
     def tailMove(self):
         n = len(self.tail)-1
         if n >= 0:

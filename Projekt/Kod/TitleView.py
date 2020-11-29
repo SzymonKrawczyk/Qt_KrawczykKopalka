@@ -23,6 +23,7 @@
 #           20.11.2020 | Szymon Krawczyk    | Poprawa komentarzy
 #           20.11.2020 | Szymon Krawczyk    | Usunięcie testowania
 #           20.11.2020 | Szymon Krawczyk    | Stworzenie prostej instrukcji gry
+#           29.11.2020 | Szymon Krawczyk    | Zmiana czcionki tekstu zasad
 #
 
 
@@ -40,7 +41,7 @@ class TitleView(QWidget):
     # Ilość komórek na ekranie gry (bok) - musi być nieparzysty i w przedziale
     @property
     def cellCount(self):
-        return ((self.horizontalSlider.value()*2)+1)
+        return (self.horizontalSlider.value()*2)+1
 
     # Opcja - czy generować powerUpy
     @property
@@ -191,7 +192,11 @@ class TitleView(QWidget):
         self.label.setObjectName("label")
 
         self.label_2 = QtWidgets.QLabel(self)
-        self.label_2.setGeometry(QtCore.QRect(40, 100, 521, 221))
+        font2 = QtGui.QFont()
+        font2.setFamily("Calibri")
+        font2.setPointSize(12)
+        self.label_2.setFont(font2)
+        self.label_2.setGeometry(QtCore.QRect(40, 100, 521, 241))
         self.label_2.setObjectName("label_2")
         self.label_2.setWordWrap(True)
 
