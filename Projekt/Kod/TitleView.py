@@ -26,13 +26,11 @@
 #           29.11.2020 | Szymon Krawczyk    | Zmiana czcionki tekstu zasad
 #           02.12.2020 | Michał Kopałka     | Dodanie metody setSettings
 #           02.12.2020 | Michał Kopałka     | Dodanie setterów
+#           02.12.2020 | Michał Kopałka     | Usunięcie metody setSettings ( przeniesienie jej do MainViewUI )
 #
-
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QWidget, QApplication
-from Settings import Settings
-
 
 class TitleView(QWidget):
 
@@ -283,13 +281,3 @@ class TitleView(QWidget):
                   + "\n"\
                   + "\nDostosuj ustawienia gry do swoich umiejętności"
         self.label_2.setText(_translate("Form", tempStr))
-
-    def setSettings(self, settings):
-        if settings is not None:
-            self.horizontalSlider_2.setValue(settings.CPS)
-            self.horizontalSlider.setValue(int((settings.cellCount - 1) / 2))
-            self.checkBox_3.setChecked(settings.powerups)
-            self.checkBox_2.setChecked(settings.closedBox)
-            self.checkBox.setChecked(settings.randomWall)
-
-

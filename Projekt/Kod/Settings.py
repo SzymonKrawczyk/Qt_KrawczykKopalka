@@ -23,6 +23,7 @@
 #
 #           02.12.2020 | Michał Kopałka     | Utworzenie
 #           02.12.2020 | Michał Kopałka     | Dodanie komentarzy
+#           02.12.2020 | Michał Kopałka     | Dodanie metody str
 #
 
 class Settings:
@@ -88,8 +89,8 @@ class Settings:
         self.randomWall = False
 
     def __str__(self):
-        return (f"CPS = {self.CPS()} \n" +
-                f"cellCount = {self.cellCount()}\n" +
+        return (f"CPS = {self.CPS} \n" +
+                f"cellCount = {self.cellCount}\n" +
                 f"powerups = {self.powerups}\n" +
-                f"closedBox = {self.closedBox()}\n" +
-                f"randomWall = {self.randomWall()}\n")
+                f"closedBox = {self.closedBox}\n" +
+                f"randomWall = {self.randomWall}\n")
