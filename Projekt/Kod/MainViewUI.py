@@ -21,14 +21,16 @@
 #           20.11.2020 | Michał Kopałka     | Dodanie komentarzy
 #           20.11.2020 | Szymon Krawczyk    | Dodanie / poprawa komentarzy
 #           20.11.2020 | Szymon Krawczyk    | Usunięcie próby zapisu wyniku, jeżeli ktoś wychodzi przez końcem gry
-#
-
+#           02.12.2020 | Michał Kopałka     | Dodanie zmiennej settings przechowującej informację o ustawieniach
+#                                           |   ostatniej uruchamianej gry w ramiach jednej sesji
+#           02.12.2020 | Michał Kopałka     | Dodanie wczytywania ustawień ze zmiennej settings
 
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
 
 from GameView import GameView
 from TitleView import TitleView
+from Settings import Settings
 
 
 class MainWindow(QMainWindow):
@@ -46,6 +48,8 @@ class MainWindow(QMainWindow):
         self.nameOfTheCentralWidget = ""
         self.pushButton.clicked.connect(self.mainButtonClicked)
 
+        self.settings = Settings()
+
         self.startTitleWindow()
         self.show()
 
@@ -54,6 +58,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Python menu")
         self.nameOfTheCentralWidget = "TitleView"
         self.TitleWindow = TitleView()
+        self.TitleWindow.setSettings(self.settings)
         self.setCentralWidget(self.TitleWindow)
         self.pushButton.setText("Graj")
         self.show()
@@ -66,10 +71,15 @@ class MainWindow(QMainWindow):
         self.GameWindow = GameView(self.startTitleWindow)   # Przekazanie metody która wraca do okna ustawień
         self.setCentralWidget(self.GameWindow)
         self.GameWindow.CPS = self.TitleWindow.CPS
+        self.settings.CPS = self.TitleWindow.CPS
         self.GameWindow.cellCount = self.TitleWindow.cellCount
+        self.settings.cellCount = self.TitleWindow.cellCount
         self.GameWindow.powerups = self.TitleWindow.powerups
+        self.settings.powerups = self.TitleWindow.powerups
         self.GameWindow.closedBox = self.TitleWindow.closedBox
+        self.settings.closedBox = self.TitleWindow.closedBox
         self.GameWindow.randomWall = self.TitleWindow.randomWall
+        self.settings.randomWall = self.TitleWindow.randomWall
         self.GameWindow.newGame()
         self.GameWindow.show()
         self.pushButton.setText("Powrót do menu")
@@ -80,7 +90,6 @@ class MainWindow(QMainWindow):
             self.startGameWindow()
         elif self.nameOfTheCentralWidget == "GameView":
             self.startTitleWindow()
-
 
 if __name__ == "__main__":
     # Uruchomienie

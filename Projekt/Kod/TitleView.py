@@ -24,11 +24,14 @@
 #           20.11.2020 | Szymon Krawczyk    | Usunięcie testowania
 #           20.11.2020 | Szymon Krawczyk    | Stworzenie prostej instrukcji gry
 #           29.11.2020 | Szymon Krawczyk    | Zmiana czcionki tekstu zasad
+#           02.12.2020 | Michał Kopałka     | Dodanie metody setSettings
+#           02.12.2020 | Michał Kopałka     | Dodanie setterów
 #
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QWidget, QApplication
+from Settings import Settings
 
 
 class TitleView(QWidget):
@@ -38,25 +41,58 @@ class TitleView(QWidget):
     def CPS(self):
         return self.horizontalSlider_2.value()
 
+    @CPS.setter
+    def CPS(self, value):
+        if value < 1 or value > 10:
+            raise ValueError
+        self.horizontalSlider_2.setValue(value)
+
     # Ilość komórek na ekranie gry (bok) - musi być nieparzysty i w przedziale
     @property
     def cellCount(self):
         return (self.horizontalSlider.value()*2)+1
+
+
+    @cellCount.setter
+    def cellCount(self, value):
+        if value % 2 == 0 or value < 11 or value > 41:
+            raise ValueError
+        self.horizontalSlider.setValue(int((value - 1) / 2))
+
 
     # Opcja - czy generować powerUpy
     @property
     def powerups(self):
         return self.checkBox_3.isChecked()
 
+    @powerups.setter
+    def powerups(self, value):
+        if not isinstance(value, bool):
+            raise ValueError
+        self.checkBox_3.setChecked(value)
+
     # Opcja - czy obszar gry ma być otoczony ścianą
     @property
     def closedBox(self):
         return self.checkBox_2.isChecked()
 
+    @closedBox.setter
+    def closedBox(self,value):
+        if not isinstance(value, bool):
+            raise ValueError
+        self.checkBox_2.setChecked(value)
+
     # Opcja - czy generować losową ścianę w środku gry
     @property
     def randomWall(self):
         return self.checkBox.isChecked()
+
+    @randomWall.setter
+    def randomWall(self, value):
+        if not isinstance(value, bool):
+            raise ValueError
+        self.checkBox.setChecked(value)
+
 
     def __init__(self):
         super().__init__()
@@ -232,7 +268,7 @@ class TitleView(QWidget):
         self.checkBox.setText(_translate("Form", "Losowe ściany - przeszkody"))
         self.checkBox_3.setText(_translate("Form", "Super-food"))
         self.label_4.setText(_translate("Form", "Długość boku planszy "))
-        self.label_3.setText(_translate("Form", "Szybkość rozgrywki (klatki / s)"))
+        self.label_3.setText(_translate("Form", "Szybkość rozgrywki"))
         self.label.setText(_translate("Form", "(PYTHON)^2"))
         tempStr = "Gra Snake zrealizowana w Python"\
                   + "\nZbieraj jedzenie w celu zdobywania punktów, jednak uważaj, ponieważ z każdym kolejnym " \
@@ -247,3 +283,13 @@ class TitleView(QWidget):
                   + "\n"\
                   + "\nDostosuj ustawienia gry do swoich umiejętności"
         self.label_2.setText(_translate("Form", tempStr))
+
+    def setSettings(self, settings):
+        if settings is not None:
+            self.horizontalSlider_2.setValue(settings.CPS)
+            self.horizontalSlider.setValue(int((settings.cellCount - 1) / 2))
+            self.checkBox_3.setChecked(settings.powerups)
+            self.checkBox_2.setChecked(settings.closedBox)
+            self.checkBox.setChecked(settings.randomWall)
+
+
