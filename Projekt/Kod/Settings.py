@@ -83,7 +83,7 @@ class Settings:
     # Metody
     def __init__(self):
         self.CPS = 5
-        self.cellCount = 25
+        self.cellCount = 31
         self.powerups = False
         self.closedBox = False
         self.randomWall = False

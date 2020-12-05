@@ -170,7 +170,7 @@ class TitleView(QWidget):
         self.horizontalSlider.setMinimum(5)
         self.horizontalSlider.setMaximum(20)
         self.horizontalSlider.setPageStep(3)
-        self.horizontalSlider.setSliderPosition(12)
+        self.horizontalSlider.setSliderPosition(15)
         self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
         self.horizontalSlider.setObjectName("horizontalSlider")
         self.horizontalLayout_6.addWidget(self.horizontalSlider)
