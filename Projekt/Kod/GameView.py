@@ -71,6 +71,7 @@
 #           25.11.2020 | Szymon Krawczyk    | Refaktoryzacja kodu - zmiana metod na zmianę kierunku w jedną i
 #                                              połączenie przycisków / klawiatury z lambdą w celu wywołania tej metody
 #           29.11.2020 | Szymon Krawczyk    | Dodanie / poprawa / usunięcie komentarzy
+#           06.12.2020 | Michał Kopałka     | Zmiana rozmiaru buttonów pod planszą
 #
 
 #   Legenda oznaczeń wewnątrz macierzy komórek
@@ -269,7 +270,7 @@ class GameView(QWidget):
         self.myCanvasPaddingY = 100
 
         self.gridLayoutWidget = QtWidgets.QWidget(self)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(180, 610, 239, 161))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(230, 610, 140, 140))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -277,21 +278,29 @@ class GameView(QWidget):
 
         self.arrRight = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrRight.setObjectName("arrRight")
+        self.arrRight.setFixedWidth(40)
+        self.arrRight.setFixedHeight(40)
         self.arrRight.clicked.connect(lambda _: self.arrClicked("E"))
         self.gridLayout.addWidget(self.arrRight, 1, 2, 1, 1)
 
         self.arrUp = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrUp.setObjectName("arrUp")
+        self.arrUp.setFixedWidth(40)
+        self.arrUp.setFixedHeight(40)
         self.arrUp.clicked.connect(lambda _: self.arrClicked("N"))
         self.gridLayout.addWidget(self.arrUp, 0, 1, 1, 1)
 
         self.arrLeft = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrLeft.setObjectName("arrLeft")
+        self.arrLeft.setFixedWidth(40)
+        self.arrLeft.setFixedHeight(40)
         self.arrLeft.clicked.connect(lambda _: self.arrClicked("W"))
         self.gridLayout.addWidget(self.arrLeft, 1, 0, 1, 1)
 
         self.arrDown = QtWidgets.QPushButton(self.gridLayoutWidget)
         self.arrDown.setObjectName("arrDown")
+        self.arrDown.setFixedWidth(40)
+        self.arrDown.setFixedHeight(40)
         self.arrDown.clicked.connect(lambda _: self.arrClicked("S"))
         self.gridLayout.addWidget(self.arrDown, 2, 1, 1, 1)
 
